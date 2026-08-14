@@ -14,7 +14,13 @@ namespace PrisaControlada.Player
         private const int PreviewLayerA = 8;
         private const int PreviewLayerB = 9;
 
+        [Header("Scene References")]
         [SerializeField] private InventoryController inventory;
+        [SerializeField] private Canvas canvas;
+        [SerializeField] private RectTransform slotsBar;
+        [SerializeField] private RawImage[] slotImages = new RawImage[SlotCount];
+        [SerializeField] private Camera[] previewCameras = new Camera[SlotCount];
+        [SerializeField] private Transform[] visualRoots = new Transform[SlotCount];
 
         private readonly SlotPreview[] _slots = new SlotPreview[SlotCount];
 
@@ -33,17 +39,57 @@ namespace PrisaControlada.Player
         {
             if (inventory == null) inventory = GetComponent<InventoryController>();
             if (inventory == null) inventory = FindObjectOfType<InventoryController>();
+
+            ResolveSceneReferences();
+        }
+
+        private void ResolveSceneReferences()
+        {
+            if (canvas == null)
+                canvas = transform.Find("InventoryHUD_Canvas")?.GetComponent<Canvas>();
+            if (slotsBar == null)
+                slotsBar = transform.Find("InventoryHUD_Canvas/SlotsBar") as RectTransform;
+
+            for (int i = 0; i < SlotCount; i++)
+            {
+                if (slotImages[i] == null)
+                    slotImages[i] = transform.Find($"InventoryHUD_Canvas/SlotsBar/Slot{i + 1}/Preview")?.GetComponent<RawImage>();
+                if (previewCameras[i] == null)
+                    previewCameras[i] = transform.Find($"PreviewCamera{i}")?.GetComponent<Camera>();
+                if (visualRoots[i] == null)
+                    visualRoots[i] = transform.Find($"PreviewCamera{i}/VisualRoot");
+            }
         }
 
         private void Start()
         {
-            if (inventory == null) return;
+            if (inventory == null || canvas == null || slotsBar == null) return;
 
             ExcludePreviewLayersFromMainCamera();
-            CreateCanvas();
 
             for (int i = 0; i < SlotCount; i++)
-                _slots[i] = CreateSlot(i);
+            {
+                if (previewCameras[i] == null || slotImages[i] == null || visualRoots[i] == null)
+                    continue;
+
+                RenderTexture rt = new RenderTexture(PreviewWidth, PreviewHeight, 24, RenderTextureFormat.ARGB32);
+                previewCameras[i].targetTexture = rt;
+                _slots[i] = new SlotPreview
+                {
+                    image = slotImages[i],
+                    texture = rt,
+                    camera = previewCameras[i],
+                    visualRoot = visualRoots[i],
+                    layer = i == 0 ? PreviewLayerA : PreviewLayerB
+                };
+            }
+
+            foreach (SlotPreview slot in _slots)
+            {
+                if (slot == null) continue;
+                slot.image.enabled = false;
+                slot.camera.enabled = false;
+            }
 
             RefreshAll();
             inventory.InventoryChanged += RefreshAll;
@@ -73,6 +119,8 @@ namespace PrisaControlada.Player
         {
             for (int i = 0; i < SlotCount; i++)
             {
+                if (_slots[i] == null) continue;
+
                 PickupItem item = inventory.GetSlotItem(i);
                 if (item != _slots[i].currentItem)
                     RebuildVisual(i, item);
@@ -82,6 +130,8 @@ namespace PrisaControlada.Player
         private void RebuildVisual(int index, PickupItem item)
         {
             SlotPreview slot = _slots[index];
+
+            if (slot == null) return;
 
             if (slot.visual != null)
             {
@@ -153,120 +203,6 @@ namespace PrisaControlada.Player
 
             int mask = ~((1 << PreviewLayerA) | (1 << PreviewLayerB));
             main.cullingMask &= mask;
-        }
-
-        private void CreateCanvas()
-        {
-            GameObject canvasGo = new GameObject("InventoryHUD_Canvas");
-            canvasGo.transform.SetParent(transform, false);
-
-            Canvas canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 100;
-
-            CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            canvasGo.AddComponent<GraphicRaycaster>();
-
-            GameObject bar = new GameObject("SlotsBar");
-            RectTransform barRect = bar.AddComponent<RectTransform>();
-            bar.transform.SetParent(canvasGo.transform, false);
-            barRect.anchorMin = new Vector2(0.5f, 0f);
-            barRect.anchorMax = new Vector2(0.5f, 0f);
-            barRect.pivot = new Vector2(0.5f, 0f);
-            barRect.anchoredPosition = new Vector2(0f, 20f);
-
-            HorizontalLayoutGroup layout = bar.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 40f;
-            layout.childControlWidth = false;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = false;
-            layout.childForceExpandHeight = false;
-
-            barRect.sizeDelta = new Vector2(SlotCount * 150f + (SlotCount - 1) * layout.spacing, 150f);
-        }
-
-        private SlotPreview CreateSlot(int index)
-        {
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-            RectTransform barRect = transform.Find("InventoryHUD_Canvas/SlotsBar") as RectTransform;
-
-            GameObject slotGo = new GameObject($"Slot{index + 1}");
-            RectTransform slotRect = slotGo.AddComponent<RectTransform>();
-            slotGo.transform.SetParent(barRect, false);
-            slotRect.sizeDelta = new Vector2(150f, 150f);
-
-            Image bg = slotGo.AddComponent<Image>();
-            bg.color = new Color(0f, 0f, 0f, 0.6f);
-
-            if (font != null)
-            {
-                GameObject keyGo = new GameObject("Key");
-                RectTransform keyRect = keyGo.AddComponent<RectTransform>();
-                keyGo.transform.SetParent(slotRect, false);
-                keyRect.anchorMin = new Vector2(0.5f, 1f);
-                keyRect.anchorMax = new Vector2(0.5f, 1f);
-                keyRect.pivot = new Vector2(0.5f, 1f);
-                keyRect.anchoredPosition = new Vector2(0f, -6f);
-                keyRect.sizeDelta = new Vector2(60f, 24f);
-
-                Text key = keyGo.AddComponent<Text>();
-                key.text = index == 0 ? "Q" : "E";
-                key.font = font;
-                key.fontSize = 20;
-                key.color = new Color(1f, 1f, 1f, 0.85f);
-                key.alignment = TextAnchor.MiddleCenter;
-                key.raycastTarget = false;
-            }
-
-            GameObject imgGo = new GameObject("Preview");
-            RectTransform imgRect = imgGo.AddComponent<RectTransform>();
-            imgGo.transform.SetParent(slotRect, false);
-            imgRect.anchorMin = new Vector2(0.5f, 0f);
-            imgRect.anchorMax = new Vector2(0.5f, 0f);
-            imgRect.pivot = new Vector2(0.5f, 0f);
-            imgRect.anchoredPosition = new Vector2(0f, 10f);
-            imgRect.sizeDelta = new Vector2(140f, 120f);
-
-            RawImage raw = imgGo.AddComponent<RawImage>();
-            raw.raycastTarget = false;
-
-            RenderTexture rt = new RenderTexture(PreviewWidth, PreviewHeight, 24, RenderTextureFormat.ARGB32);
-            raw.texture = rt;
-
-            GameObject rigGo = new GameObject($"PreviewCamera{index}");
-            rigGo.transform.SetParent(transform, false);
-            rigGo.transform.localPosition = new Vector3(index * 0.5f, 1.6f, -1f);
-
-            Camera cam = rigGo.AddComponent<Camera>();
-            cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = Color.clear;
-            cam.orthographic = true;
-            cam.orthographicSize = 1f;
-            cam.nearClipPlane = 0.3f;
-            cam.farClipPlane = 20f;
-            cam.cullingMask = 1 << (index == 0 ? PreviewLayerA : PreviewLayerB);
-            cam.targetTexture = rt;
-            cam.allowHDR = false;
-            cam.allowMSAA = false;
-            cam.enabled = false;
-
-            GameObject visualRootGo = new GameObject("VisualRoot");
-            visualRootGo.transform.SetParent(rigGo.transform, false);
-            visualRootGo.transform.localPosition = new Vector3(0f, 0f, PreviewDistance);
-
-            return new SlotPreview
-            {
-                image = raw,
-                texture = rt,
-                camera = cam,
-                visualRoot = visualRootGo.transform,
-                layer = index == 0 ? PreviewLayerA : PreviewLayerB
-            };
         }
     }
 }

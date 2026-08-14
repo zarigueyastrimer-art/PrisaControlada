@@ -6,7 +6,9 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
@@ -15,6 +17,13 @@ namespace PrisaControlada.Editor
         private const string ScenePath = "Assets/Scenes/Prototype.unity";
         private const string InputActionsPath = "Assets/InputSystem_Actions.inputactions";
         private const string MaterialsFolder = "Assets/Prototype/Materials";
+        private const string UIFolder = "Assets/Prototype/UI";
+        private const string PostFxProfilePath = "Assets/Prototype/UI/NoisePostFX.asset";
+
+        private const int SlotCount = 2;
+        private const int PreviewLayerA = 8;
+        private const int PreviewLayerB = 9;
+        private const float PreviewDistance = 4f;
 
         [MenuItem("Tools/PrisaControlada/Setup Prototype Scene")]
         public static void CreatePrototypeScene()
@@ -120,7 +129,7 @@ namespace PrisaControlada.Editor
             soInv.FindProperty("inputActions").objectReferenceValue = inputActions;
             soInv.ApplyModifiedProperties();
 
-            player.AddComponent<MicNoiseMeter>();
+            EnsurePlayerUI(player);
         }
 
         private static void SetColliderLayers(Collider collider)
@@ -187,11 +196,276 @@ namespace PrisaControlada.Editor
                 so.ApplyModifiedProperties();
             }
 
-            if (player.GetComponent<InventoryHUD>() == null)
-                player.AddComponent<InventoryHUD>();
+            EnsurePlayerUI(player);
+        }
 
-            if (player.GetComponent<MicNoiseMeter>() == null)
-                player.AddComponent<MicNoiseMeter>();
+        private static void EnsurePlayerUI(GameObject player)
+        {
+            EnsureInventoryHUDUI(player);
+            EnsureMicNoiseMeterUI(player);
+        }
+
+        private static void EnsureInventoryHUDUI(GameObject player)
+        {
+            Transform playerT = player.transform;
+
+            Transform canvasT = playerT.Find("InventoryHUD_Canvas");
+            if (canvasT == null)
+            {
+                RectTransform canvasRect = CreateRect("InventoryHUD_Canvas", playerT);
+                canvasT = canvasRect;
+                Canvas canvas = canvasRect.gameObject.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 100;
+
+                CanvasScaler scaler = canvasRect.gameObject.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
+
+                canvasRect.gameObject.AddComponent<GraphicRaycaster>();
+            }
+
+            Transform barT = canvasT.Find("SlotsBar");
+            if (barT == null)
+            {
+                RectTransform barRect = CreateRect("SlotsBar", canvasT);
+                barRect.anchorMin = new Vector2(0.5f, 0f);
+                barRect.anchorMax = new Vector2(0.5f, 0f);
+                barRect.pivot = new Vector2(0.5f, 0f);
+                barRect.anchoredPosition = new Vector2(0f, 20f);
+                barRect.sizeDelta = new Vector2(340f, 150f);
+
+                HorizontalLayoutGroup layout = barRect.gameObject.AddComponent<HorizontalLayoutGroup>();
+                layout.spacing = 40f;
+                layout.childAlignment = TextAnchor.MiddleCenter;
+
+                barT = barRect;
+            }
+
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            RawImage[] slotImages = new RawImage[SlotCount];
+            for (int i = 0; i < SlotCount; i++)
+            {
+                string slotName = $"Slot{i + 1}";
+                Transform slotT = barT.Find(slotName);
+                if (slotT == null)
+                {
+                    RectTransform slotRect = CreateRect(slotName, barT);
+                    slotRect.sizeDelta = new Vector2(150f, 150f);
+                    slotRect.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
+
+                    RectTransform keyRect = CreateRect("Key", slotRect);
+                    keyRect.anchorMin = new Vector2(0.5f, 1f);
+                    keyRect.anchorMax = new Vector2(0.5f, 1f);
+                    keyRect.pivot = new Vector2(0.5f, 1f);
+                    keyRect.anchoredPosition = new Vector2(0f, -4f);
+                    keyRect.sizeDelta = new Vector2(60f, 22f);
+
+                    Text keyText = keyRect.gameObject.AddComponent<Text>();
+                    keyText.text = i == 0 ? "Q" : "E";
+                    keyText.font = font;
+                    keyText.fontSize = 14;
+                    keyText.fontStyle = FontStyle.Bold;
+                    keyText.alignment = TextAnchor.MiddleCenter;
+                    keyText.color = Color.white;
+                    keyText.raycastTarget = false;
+
+                    RectTransform previewRect = CreateRect("Preview", slotRect);
+                    previewRect.anchorMin = new Vector2(0f, 0f);
+                    previewRect.anchorMax = new Vector2(1f, 1f);
+                    previewRect.offsetMin = new Vector2(8f, 8f);
+                    previewRect.offsetMax = new Vector2(-8f, -8f);
+
+                    RawImage raw = previewRect.gameObject.AddComponent<RawImage>();
+                    raw.color = Color.white;
+                    raw.raycastTarget = false;
+                }
+
+                slotImages[i] = barT.Find($"{slotName}/Preview")?.GetComponent<RawImage>();
+            }
+
+            Camera[] previewCameras = new Camera[SlotCount];
+            Transform[] visualRoots = new Transform[SlotCount];
+            for (int i = 0; i < SlotCount; i++)
+            {
+                string rigName = $"PreviewCamera{i}";
+                Transform rigT = playerT.Find(rigName);
+                if (rigT == null)
+                {
+                    GameObject rig = new GameObject(rigName);
+                    rig.transform.SetParent(playerT, false);
+                    rig.transform.localPosition = new Vector3(i * 0.5f, 1.6f, -1f);
+
+                    Camera cam = rig.AddComponent<Camera>();
+                    cam.clearFlags = CameraClearFlags.SolidColor;
+                    cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                    cam.orthographic = true;
+                    cam.orthographicSize = 1f;
+                    cam.nearClipPlane = 0.3f;
+                    cam.farClipPlane = 20f;
+                    cam.cullingMask = 1 << (i == 0 ? PreviewLayerA : PreviewLayerB);
+                    cam.allowHDR = false;
+                    cam.allowMSAA = false;
+                    cam.enabled = false;
+
+                    Transform rootT = new GameObject("VisualRoot").transform;
+                    rootT.SetParent(rig.transform, false);
+                    rootT.localPosition = new Vector3(0f, 0f, PreviewDistance);
+
+                    rigT = rig.transform;
+                }
+
+                previewCameras[i] = rigT.GetComponent<Camera>();
+                visualRoots[i] = rigT.Find("VisualRoot");
+            }
+
+            InventoryHUD hud = player.GetComponent<InventoryHUD>();
+            if (hud == null) hud = player.AddComponent<InventoryHUD>();
+
+            SerializedObject so = new SerializedObject(hud);
+            so.FindProperty("inventory").objectReferenceValue = player.GetComponent<InventoryController>();
+            so.FindProperty("canvas").objectReferenceValue = canvasT.GetComponent<Canvas>();
+            so.FindProperty("slotsBar").objectReferenceValue = barT as RectTransform;
+
+            SerializedProperty imgs = so.FindProperty("slotImages");
+            imgs.arraySize = SlotCount;
+            SerializedProperty cams = so.FindProperty("previewCameras");
+            cams.arraySize = SlotCount;
+            SerializedProperty roots = so.FindProperty("visualRoots");
+            roots.arraySize = SlotCount;
+            for (int i = 0; i < SlotCount; i++)
+            {
+                imgs.GetArrayElementAtIndex(i).objectReferenceValue = slotImages[i];
+                cams.GetArrayElementAtIndex(i).objectReferenceValue = previewCameras[i];
+                roots.GetArrayElementAtIndex(i).objectReferenceValue = visualRoots[i];
+            }
+
+            so.ApplyModifiedProperties();
+        }
+
+        private static void EnsureMicNoiseMeterUI(GameObject player)
+        {
+            Transform playerT = player.transform;
+
+            Transform canvasT = playerT.Find("MicNoiseMeter_Canvas");
+            if (canvasT == null)
+            {
+                RectTransform canvasRect = CreateRect("MicNoiseMeter_Canvas", playerT);
+                canvasT = canvasRect;
+                Canvas canvas = canvasRect.gameObject.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 200;
+
+                CanvasScaler scaler = canvasRect.gameObject.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
+
+                canvasRect.gameObject.AddComponent<GraphicRaycaster>();
+            }
+
+            Image fill = null;
+            Transform barT = canvasT.Find("Bar");
+            if (barT == null)
+            {
+                RectTransform barRect = CreateRect("Bar", canvasT);
+                barRect.anchorMin = new Vector2(0.5f, 0f);
+                barRect.anchorMax = new Vector2(0.5f, 0f);
+                barRect.pivot = new Vector2(0.5f, 0f);
+                barRect.anchoredPosition = new Vector2(0f, 200f);
+                barRect.sizeDelta = new Vector2(500f, 36f);
+
+                barRect.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
+
+                RectTransform fillRect = CreateRect("Fill", barRect);
+                fillRect.anchorMin = new Vector2(0f, 0f);
+                fillRect.anchorMax = new Vector2(0f, 1f);
+                fillRect.pivot = new Vector2(0f, 0.5f);
+                fillRect.sizeDelta = new Vector2(500f, 0f);
+
+                fill = fillRect.gameObject.AddComponent<Image>();
+                fill.color = new Color(0.4f, 0.9f, 0.4f, 1f);
+                fill.raycastTarget = false;
+
+                barT = barRect;
+            }
+            else
+            {
+                fill = barT.Find("Fill")?.GetComponent<Image>();
+            }
+
+            Volume volume = null;
+            Camera cam = player.GetComponentInChildren<Camera>();
+            if (cam != null)
+            {
+                volume = cam.GetComponent<Volume>();
+                if (volume == null)
+                    volume = cam.gameObject.AddComponent<Volume>();
+                volume.isGlobal = true;
+                volume.priority = 100f;
+
+                EnsureFolder(UIFolder);
+
+                VolumeProfile profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(PostFxProfilePath);
+                if (profile == null)
+                {
+                    profile = ScriptableObject.CreateInstance<VolumeProfile>();
+                    AssetDatabase.CreateAsset(profile, PostFxProfilePath);
+                }
+                else
+                {
+                    profile.components.RemoveAll(c => c == null);
+                }
+
+                bool changed = false;
+
+                if (!profile.TryGet<ColorAdjustments>(out ColorAdjustments _))
+                {
+                    ColorAdjustments ca = profile.Add<ColorAdjustments>(true);
+                    ca.colorFilter.value = Color.white;
+                    ca.saturation.value = 0f;
+                    AssetDatabase.AddObjectToAsset(ca, profile);
+                    changed = true;
+                }
+
+                if (!profile.TryGet<Vignette>(out Vignette _))
+                {
+                    Vignette vg = profile.Add<Vignette>(true);
+                    vg.intensity.value = 0f;
+                    vg.smoothness.value = 0.271f;
+                    vg.color.value = new Color(1f, 0.15f, 0.15f, 1f);
+                    AssetDatabase.AddObjectToAsset(vg, profile);
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    EditorUtility.SetDirty(profile);
+                    AssetDatabase.SaveAssets();
+                }
+
+                volume.sharedProfile = profile;
+            }
+
+            MicNoiseMeter meter = player.GetComponent<MicNoiseMeter>();
+            if (meter == null) meter = player.AddComponent<MicNoiseMeter>();
+
+            SerializedObject so = new SerializedObject(meter);
+            so.FindProperty("canvas").objectReferenceValue = canvasT.GetComponent<Canvas>();
+            so.FindProperty("fill").objectReferenceValue = fill;
+            so.FindProperty("postFxVolume").objectReferenceValue = volume;
+            so.ApplyModifiedProperties();
+
+            canvasT.gameObject.SetActive(false);
+        }
+
+        private static RectTransform CreateRect(string name, Transform parent)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            return go.GetComponent<RectTransform>();
         }
 
         private static void CreatePickupTestCubes()

@@ -11,6 +11,11 @@ namespace PrisaControlada.Player
         [Header("References")]
         [SerializeField] private InputActionAsset inputActions;
 
+        [Header("Scene References")]
+        [SerializeField] private Canvas canvas;
+        [SerializeField] private Image fill;
+        [SerializeField] private Volume postFxVolume;
+
         [Header("Mic Settings")]
         [SerializeField] private int sampleRate = 44100;
         [SerializeField] private float sampleWindowSeconds = 0.1f;
@@ -23,14 +28,12 @@ namespace PrisaControlada.Player
         [Header("UI")]
         [SerializeField] private Color normalColor = new Color(0.4f, 0.9f, 0.4f, 1f);
         [SerializeField] private Color loudColor = new Color(0.9f, 0.2f, 0.2f, 1f);
-        [SerializeField] private Vector2 barSize = new Vector2(500f, 36f);
-        [SerializeField] private float barYOffset = 200f;
 
         [Header("Post FX")]
         [SerializeField] private Color postFxColor = new Color(1f, 0.15f, 0.15f, 1f);
         [SerializeField] private float postFxIntensity = 0.35f;
         [SerializeField] private float postFxSmoothTime = 0.2f;
-        [SerializeField] private float vignetteBaseIntensity = 0.4f;
+        [SerializeField] private float vignetteBaseIntensity = 0f;
         [SerializeField] private float vignetteMaxIntensity = 0.6f;
         [SerializeField] private float vignetteBaseSmoothness = 0.271f;
         [SerializeField] private float vignetteMaxSmoothness = 0.755f;
@@ -40,11 +43,9 @@ namespace PrisaControlada.Player
         private float[] _samples;
         private bool _isActive;
 
-        private GameObject _root;
-        private Image _fill;
+        private float _barWidth = 500f;
         private float _level;
 
-        private Volume _volume;
         private ColorAdjustments _colorAdjustments;
         private Vignette _vignette;
         private float _postFxAmount;
@@ -64,12 +65,62 @@ namespace PrisaControlada.Player
                 _micMeterAction = inputActions.FindAction("MicMeter");
                 _micMeterAction?.Enable();
             }
+
+            ResolveSceneReferences();
+        }
+
+        private void ResolveSceneReferences()
+        {
+            if (canvas == null)
+                canvas = transform.Find("MicNoiseMeter_Canvas")?.GetComponent<Canvas>();
+            if (fill == null)
+                fill = transform.Find("MicNoiseMeter_Canvas/Bar/Fill")?.GetComponent<Image>();
+            if (postFxVolume == null)
+            {
+                Camera cam = GetComponentInChildren<Camera>();
+                if (cam != null)
+                    postFxVolume = cam.GetComponent<Volume>();
+            }
+        }
+
+        private void Start()
+        {
+            if (fill != null)
+            {
+                RectTransform barRect = fill.rectTransform.parent as RectTransform;
+                if (barRect != null)
+                    _barWidth = barRect.sizeDelta.x;
+            }
+
+            _colorAdjustments = null;
+            _vignette = null;
+            if (postFxVolume != null)
+            {
+                try
+                {
+                    VolumeProfile profile = postFxVolume.profile;
+                    if (profile != null)
+                    {
+                        profile.TryGet<ColorAdjustments>(out _colorAdjustments);
+                        profile.TryGet<Vignette>(out _vignette);
+                    }
+                }
+                catch (MissingReferenceException)
+                {
+                    _colorAdjustments = null;
+                    _vignette = null;
+                }
+            }
+
+            if (canvas != null)
+                canvas.gameObject.SetActive(false);
+
+            ResetPostFX();
         }
 
         private void OnDestroy()
         {
             StopMic();
-            TeardownPostFX();
         }
 
         private void Update()
@@ -88,17 +139,17 @@ namespace PrisaControlada.Player
         {
             _isActive = !_isActive;
 
+            if (canvas != null)
+                canvas.gameObject.SetActive(_isActive);
+
             if (_isActive)
             {
                 StartMic();
-                CreateUI();
-                SetupPostFX();
             }
             else
             {
                 StopMic();
-                DestroyUI();
-                TeardownPostFX();
+                ResetPostFX();
             }
         }
 
@@ -142,66 +193,22 @@ namespace PrisaControlada.Player
             _level = Mathf.MoveTowards(_level, target, Time.deltaTime * 8f);
         }
 
-        private void CreateUI()
-        {
-            if (_root != null) return;
-
-            GameObject canvasGo = new GameObject("MicNoiseMeter_Canvas");
-            canvasGo.transform.SetParent(transform, false);
-
-            Canvas canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 200;
-
-            CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            canvasGo.AddComponent<GraphicRaycaster>();
-
-            GameObject barGo = new GameObject("Bar");
-            RectTransform barRect = barGo.AddComponent<RectTransform>();
-            barGo.transform.SetParent(canvasGo.transform, false);
-            barRect.anchorMin = new Vector2(0.5f, 0f);
-            barRect.anchorMax = new Vector2(0.5f, 0f);
-            barRect.pivot = new Vector2(0.5f, 0f);
-            barRect.anchoredPosition = new Vector2(0f, barYOffset);
-            barRect.sizeDelta = barSize;
-
-            Image bg = barGo.AddComponent<Image>();
-            bg.color = new Color(0f, 0f, 0f, 0.6f);
-
-            GameObject fillGo = new GameObject("Fill");
-            RectTransform fillRect = fillGo.AddComponent<RectTransform>();
-            fillGo.transform.SetParent(barRect, false);
-            fillRect.anchorMin = new Vector2(0f, 0f);
-            fillRect.anchorMax = new Vector2(0f, 1f);
-            fillRect.pivot = new Vector2(0f, 0.5f);
-            fillRect.sizeDelta = new Vector2(barSize.x, barSize.y);
-
-            _fill = fillGo.AddComponent<Image>();
-            _fill.color = normalColor;
-
-            _root = canvasGo;
-        }
-
         private void UpdateBar()
         {
-            if (_fill == null) return;
+            if (fill == null) return;
 
-            _fill.rectTransform.sizeDelta = new Vector2(barSize.x * _level, barSize.y);
+            Vector2 sd = fill.rectTransform.sizeDelta;
+            sd.x = _barWidth * _level;
+            fill.rectTransform.sizeDelta = sd;
+
             float thresholdLevel = Mathf.InverseLerp(minVolume, maxVolume, loudThreshold);
-            _fill.color = _level >= thresholdLevel ? loudColor : normalColor;
+            fill.color = _level >= thresholdLevel ? loudColor : normalColor;
 
-            float targetFx = Mathf.InverseLerp(minVolume, maxVolume, loudThreshold);
-            float amount = _level >= targetFx ? Mathf.InverseLerp(targetFx, 1f, _level) : 0f;
+            float amount = _level >= thresholdLevel ? Mathf.InverseLerp(thresholdLevel, 1f, _level) : 0f;
             _postFxAmount = Mathf.SmoothDamp(_postFxAmount, amount, ref _postFxVelocity, postFxSmoothTime);
 
             if (_colorAdjustments != null)
-            {
                 _colorAdjustments.colorFilter.value = Color.Lerp(Color.white, postFxColor, _postFxAmount * postFxIntensity);
-            }
 
             if (_vignette != null)
             {
@@ -210,54 +217,19 @@ namespace PrisaControlada.Player
             }
         }
 
-        private void SetupPostFX()
+        private void ResetPostFX()
         {
-            if (_volume != null) return;
+            _postFxAmount = 0f;
+            _postFxVelocity = 0f;
 
-            Camera cam = GetComponentInChildren<Camera>();
-            if (cam == null) return;
+            if (_colorAdjustments != null)
+                _colorAdjustments.colorFilter.value = Color.white;
 
-            VolumeProfile profile = ScriptableObject.CreateInstance<VolumeProfile>();
-            _colorAdjustments = profile.Add<ColorAdjustments>(true);
-            _colorAdjustments.colorFilter.value = Color.white;
-            _colorAdjustments.saturation.value = 0f;
-
-            _vignette = profile.Add<Vignette>(true);
-            _vignette.intensity.value = vignetteBaseIntensity;
-            _vignette.smoothness.value = vignetteBaseSmoothness;
-            _vignette.color.value = postFxColor;
-
-            _volume = cam.gameObject.AddComponent<Volume>();
-            _volume.isGlobal = true;
-            _volume.priority = 100f;
-            _volume.profile = profile;
-        }
-
-        private void TeardownPostFX()
-        {
-            if (_volume != null)
+            if (_vignette != null)
             {
-                VolumeProfile profile = _volume.profile;
-                if (profile != null)
-                    Destroy(profile);
-
-                Destroy(_volume);
-                _volume = null;
-                _colorAdjustments = null;
-                _vignette = null;
-                _postFxAmount = 0f;
+                _vignette.intensity.value = vignetteBaseIntensity;
+                _vignette.smoothness.value = vignetteBaseSmoothness;
             }
-        }
-
-        private void DestroyUI()
-        {
-            if (_root != null)
-            {
-                Destroy(_root);
-                _root = null;
-            }
-
-            _fill = null;
         }
     }
 }
