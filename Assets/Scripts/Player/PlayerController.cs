@@ -54,9 +54,11 @@ namespace PrisaControlada.Player
 
         public float HorizontalSpeed => _moveDirection.magnitude;
         public bool IsSprinting => _isSprinting;
+        public bool IsCrouching => _isCrouching;
         public bool IsGrounded => _controller.isGrounded;
         public float RunSpeed => runSpeed;
         public Vector3 MoveVector => _moveDirection;
+        public InputActionAsset InputActions => inputActions;
 
         private void Awake()
         {

@@ -20,6 +20,12 @@ namespace PrisaControlada.Player
         [SerializeField, Range(0f, 1f)] private float rollFactor = 0.5f;
         [SerializeField, Range(0f, 3f)] private float speedBlend = 0.7f;
 
+        [Header("Crouch Shake")]
+        [SerializeField, Range(0f, 5f)] private float crouchAngular = 0.45f;
+        [SerializeField, Range(0f, 0.2f)] private float crouchPositional = 0.008f;
+        [SerializeField, Range(1f, 30f)] private float crouchFrequency = 8f;
+        [SerializeField, Range(0f, 3f)] private float crouchMoveThreshold = 0.5f;
+
         [Header("Impact Shake")]
         [SerializeField, Range(0f, 20f)] private float impactAngular = 5f;
         [SerializeField, Range(0f, 0.5f)] private float impactPositional = 0.08f;
@@ -80,13 +86,29 @@ namespace PrisaControlada.Player
 
         private Vector3 SampleMovement(float move01, bool angular = true)
         {
-            float amp = Mathf.Lerp(angular ? walkAngular : walkPositional, angular ? runAngular : runPositional, Mathf.Pow(move01, speedBlend));
-            float freq = movementFrequency * (0.5f + move01 * 0.5f);
+            bool crouchMoving = _player != null
+                && _player.IsCrouching
+                && _player.HorizontalSpeed > crouchMoveThreshold;
+
+            if (crouchMoving)
+            {
+                float amp = angular ? crouchAngular : crouchPositional;
+                float freq = crouchFrequency * (0.5f + move01 * 0.5f);
+
+                return new Vector3(
+                    Noise(30, freq) * amp,
+                    Noise(31, freq) * amp * 0.8f,
+                    Noise(32, freq) * amp * rollFactor
+                );
+            }
+
+            float amp2 = Mathf.Lerp(angular ? walkAngular : walkPositional, angular ? runAngular : runPositional, Mathf.Pow(move01, speedBlend));
+            float freq2 = movementFrequency * (0.5f + move01 * 0.5f);
 
             return new Vector3(
-                Noise(10, freq) * amp,
-                Noise(11, freq) * amp * 0.8f,
-                Noise(12, freq) * amp * rollFactor
+                Noise(10, freq2) * amp2,
+                Noise(11, freq2) * amp2 * 0.8f,
+                Noise(12, freq2) * amp2 * rollFactor
             );
         }
 

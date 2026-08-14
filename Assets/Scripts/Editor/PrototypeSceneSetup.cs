@@ -1,4 +1,5 @@
 using PrisaControlada.Core;
+using PrisaControlada.Items;
 using PrisaControlada.Player;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -31,6 +32,7 @@ namespace PrisaControlada.Editor
             CreateGround();
             CreateReferenceCubes();
             CreatePlayer(inputActions);
+            CreatePickupTestCubes();
             CreateLight();
 
             RenderSettings.ambientMode = AmbientMode.Flat;
@@ -111,6 +113,14 @@ namespace PrisaControlada.Editor
             so.FindProperty("inputActions").objectReferenceValue = inputActions;
             so.FindProperty("footstepAudioSource").objectReferenceValue = audioSource;
             so.ApplyModifiedProperties();
+
+            InventoryController inventory = player.AddComponent<InventoryController>();
+            SerializedObject soInv = new SerializedObject(inventory);
+            soInv.FindProperty("viewCamera").objectReferenceValue = cam;
+            soInv.FindProperty("inputActions").objectReferenceValue = inputActions;
+            soInv.ApplyModifiedProperties();
+
+            player.AddComponent<MicNoiseMeter>();
         }
 
         private static void SetColliderLayers(Collider collider)
@@ -130,6 +140,88 @@ namespace PrisaControlada.Editor
             light.color = new Color(1f, 0.94f, 0.86f);
             light.intensity = 1.1f;
             light.shadows = LightShadows.Soft;
+        }
+
+        [MenuItem("Tools/PrisaControlada/Add Pickup Test Cubes")]
+        public static void AddPickupTestCubesToScene()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                EditorUtility.DisplayDialog("Pickup Test Cubes", "Save the scene first.", "OK");
+                return;
+            }
+
+            EnsurePlayerHasInventory(scene);
+            CreatePickupTestCubes();
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+
+        private static void EnsurePlayerHasInventory(Scene scene)
+        {
+            if (scene == null || !scene.IsValid()) return;
+
+            GameObject player = null;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.name == "Player")
+                {
+                    player = root;
+                    break;
+                }
+            }
+
+            if (player == null)
+                return;
+
+            if (player.GetComponent<InventoryController>() == null)
+            {
+                InputActionAsset inputActions = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputActionsPath);
+                Camera cam = player.GetComponentInChildren<Camera>();
+
+                InventoryController inventory = player.AddComponent<InventoryController>();
+                SerializedObject so = new SerializedObject(inventory);
+                so.FindProperty("viewCamera").objectReferenceValue = cam;
+                so.FindProperty("inputActions").objectReferenceValue = inputActions;
+                so.ApplyModifiedProperties();
+            }
+
+            if (player.GetComponent<InventoryHUD>() == null)
+                player.AddComponent<InventoryHUD>();
+
+            if (player.GetComponent<MicNoiseMeter>() == null)
+                player.AddComponent<MicNoiseMeter>();
+        }
+
+        private static void CreatePickupTestCubes()
+        {
+            Material[] materials =
+            {
+                CreateMaterial("RefRed", new Color(0.8f, 0.1f, 0.1f)),
+                CreateMaterial("RefGreen", new Color(0.1f, 0.7f, 0.2f)),
+                CreateMaterial("RefBlue", new Color(0.1f, 0.3f, 0.8f)),
+                CreateMaterial("RefYellow", new Color(0.8f, 0.7f, 0.1f))
+            };
+
+            for (int i = 0; i < materials.Length; i++)
+            {
+                string cubeName = $"PickupCube_{i + 1}";
+                if (GameObject.Find(cubeName) != null)
+                    continue;
+
+                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.name = cubeName;
+                cube.transform.position = new Vector3(1.5f + i * 1.2f, 0.5f, 3f);
+                cube.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                cube.GetComponent<Renderer>().sharedMaterial = materials[i];
+
+                Rigidbody rb = cube.AddComponent<Rigidbody>();
+                rb.mass = 0.5f;
+                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+                cube.AddComponent<PickupItem>();
+            }
         }
 
         private static Material CreateMaterial(string name, Color color)
