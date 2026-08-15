@@ -43,6 +43,9 @@ namespace PrisaControlada.Player
         private float[] _samples;
         private bool _isActive;
 
+        public float CurrentLevel => _level;
+        public bool IsMicActive => _isActive;
+
         private float _barWidth = 500f;
         private float _level;
 

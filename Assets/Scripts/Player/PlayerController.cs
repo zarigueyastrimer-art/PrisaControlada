@@ -31,6 +31,19 @@ namespace PrisaControlada.Player
         [SerializeField] private float walkStepInterval = 0.5f;
         [SerializeField] private float runStepInterval = 0.3f;
 
+        [Header("Noise")]
+        [SerializeField] private float walkNoise = 0.35f;
+        [SerializeField] private float runNoise = 1f;
+        [SerializeField] private float crouchNoise = 0.12f;
+
+        [Header("Health Movement")]
+        [SerializeField] private PlayerHealth health;
+        [SerializeField, Range(0f, 1f)] private float minSpeedFactor = 0.45f;
+        [SerializeField, Range(1f, 4f)] private float healthSpeedExponent = 2f;
+        [SerializeField, Min(0f)] private int healthThreshold = 25;
+
+        public event System.Action<float> OnNoiseMade;
+
         [Header("References")]
         [SerializeField] private Transform cameraPivot;
         [SerializeField] private InputActionAsset inputActions;
@@ -63,6 +76,9 @@ namespace PrisaControlada.Player
         private void Awake()
         {
             _controller = GetComponent<CharacterController>();
+
+            if (health == null)
+                health = GetComponent<PlayerHealth>();
 
             if (cameraPivot == null)
             {
@@ -106,16 +122,33 @@ namespace PrisaControlada.Player
 
         private void Update()
         {
+            HandleDebugKeys();
             HandleCrouch();
             HandleMovement();
             HandleFootsteps();
+        }
+
+        private void HandleDebugKeys()
+        {
+            if (Keyboard.current != null && Keyboard.current.kKey.wasPressedThisFrame)
+            {
+                PlayerHealth health = GetComponent<PlayerHealth>();
+                if (health != null) health.TakeDamage(25);
+            }
+
+            if (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame)
+            {
+                PlayerHealth health = GetComponent<PlayerHealth>();
+                if (health != null) health.Heal(25);
+            }
         }
 
         private void HandleMovement()
         {
             Vector2 input = _moveAction != null ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
             _isSprinting = !_isCrouching && _sprintAction != null && _sprintAction.IsPressed();
-            float speed = _isCrouching ? crouchSpeed : (_isSprinting ? runSpeed : walkSpeed);
+            float baseSpeed = _isCrouching ? crouchSpeed : (_isSprinting ? runSpeed : walkSpeed);
+            float speed = _isCrouching ? baseSpeed : baseSpeed * GetHealthSpeedFactor();
 
             Vector3 forward = transform.TransformDirection(Vector3.forward);
             Vector3 right = transform.TransformDirection(Vector3.right);
@@ -131,6 +164,16 @@ namespace PrisaControlada.Player
             _controller.Move(_moveDirection * Time.deltaTime);
         }
 
+        private float GetHealthSpeedFactor()
+        {
+            if (health == null) return 1f;
+
+            float hp01 = Mathf.Clamp01((float)health.CurrentHealth / health.MaxHealth);
+            float range = Mathf.Max(0.01f, 1f - Mathf.Clamp01((float)healthThreshold / health.MaxHealth));
+            float t = Mathf.Clamp01((1f - hp01) / range);
+            return Mathf.Lerp(1f, minSpeedFactor, Mathf.Pow(t, healthSpeedExponent));
+        }
+
         private void HandleFootsteps()
         {
             if (!_controller.isGrounded || _moveDirection.magnitude <= 0f) return;
@@ -140,6 +183,7 @@ namespace PrisaControlada.Player
             if (Time.time >= _nextStepTime)
             {
                 PlayFootstepSound(_isSprinting);
+                OnNoiseMade?.Invoke(_isCrouching ? crouchNoise : (_isSprinting ? runNoise : walkNoise));
                 _nextStepTime = Time.time + stepInterval;
             }
         }

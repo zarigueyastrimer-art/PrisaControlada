@@ -33,11 +33,23 @@ namespace PrisaControlada.Player
         [SerializeField, Range(0.5f, 4f)] private float traumaExponent = 2.2f;
         [SerializeField, Range(0.1f, 5f)] private float recoverySpeed = 1.2f;
 
+        [Header("Health Limp")]
+        [SerializeField, Min(0f)] private float limpFrequency = 2.2f;
+        [SerializeField, Min(1f)] private float limpExponent = 1.5f;
+        [SerializeField, Min(0f)] private int limpHealthThreshold = 25;
+
+        [Header("Health Limp Walk")]
+        [SerializeField] private float walkLimpRoll = 8f;
+        [SerializeField] private float walkLimpPitch = 5f;
+        [SerializeField] private float walkLimpVertical = 0.12f;
+        [SerializeField] private float walkLimpHorizontal = 0.06f;
+
         [Header("Smoothing")]
         [SerializeField, Range(1f, 60f)] private float smoothing = 24f;
 
         private Transform _cam;
         private PlayerController _player;
+        private PlayerHealth _health;
         private float _seed;
         private float _trauma;
         private Vector3 _angularOffset;
@@ -49,6 +61,7 @@ namespace PrisaControlada.Player
         {
             _cam = transform;
             _player = GetComponentInParent<PlayerController>();
+            _health = GetComponentInParent<PlayerHealth>();
             _seed = Random.value * 1000f;
         }
 
@@ -63,8 +76,8 @@ namespace PrisaControlada.Player
             float trauma = Mathf.Pow(_trauma, traumaExponent);
             _trauma = Mathf.Clamp01(_trauma - recoverySpeed * Time.deltaTime);
 
-            Vector3 targetAngular = SampleHandheld() + SampleMovement(move01) + SampleImpact(trauma, true);
-            Vector3 targetPositional = SampleHandheld(false) + SampleMovement(move01, false) + SampleImpact(trauma, false);
+            Vector3 targetAngular = SampleHandheld() + SampleMovement(move01) + SampleImpact(trauma, true) + SampleLimp(move01, true);
+            Vector3 targetPositional = SampleHandheld(false) + SampleMovement(move01, false) + SampleImpact(trauma, false) + SampleLimp(move01, false);
 
             float blend = 1f - Mathf.Exp(-smoothing * Time.deltaTime);
             _angularOffset = Vector3.Lerp(_angularOffset, targetAngular, blend);
@@ -121,6 +134,44 @@ namespace PrisaControlada.Player
                 Noise(21, impactFrequency) * amp * 0.8f,
                 Noise(22, impactFrequency) * amp * 0.5f
             );
+        }
+
+        private float GetHealthFactor()
+        {
+            if (_health == null) return 0f;
+
+            float hp01 = Mathf.Clamp01((float)_health.CurrentHealth / _health.MaxHealth);
+            float range = Mathf.Max(0.01f, 1f - Mathf.Clamp01((float)limpHealthThreshold / _health.MaxHealth));
+            float t = Mathf.Clamp01((1f - hp01) / range);
+            return Mathf.Pow(t, limpExponent);
+        }
+
+        private Vector3 SampleLimp(float move01, bool angular = true)
+        {
+            float factor = GetHealthFactor();
+            if (factor <= 0f || move01 <= 0f) return Vector3.zero;
+
+            factor *= move01;
+
+            float t = Time.time * limpFrequency;
+            float step = Mathf.Max(0f, Mathf.Sin(t));
+            float drag = Mathf.Max(0f, -Mathf.Sin(t)) * 0.5f;
+            float pulse = Mathf.Max(step, drag);
+            float sway = Mathf.Sin(t * 0.5f);
+            float jit = Noise(40, limpFrequency * 1.5f);
+
+            if (angular)
+            {
+                float r = pulse * walkLimpRoll - (1f - pulse) * walkLimpRoll * 0.3f + sway * walkLimpRoll * 0.4f;
+                float p = -pulse * walkLimpPitch * 0.6f - drag * walkLimpPitch * 0.8f + jit * walkLimpPitch * 0.25f;
+                return new Vector3(p, 0f, r) * factor;
+            }
+
+            return new Vector3(
+                (pulse - 0.5f) * walkLimpHorizontal + sway * walkLimpHorizontal * 0.4f + jit * walkLimpHorizontal * 0.3f,
+                -pulse * walkLimpVertical,
+                0f
+            ) * factor;
         }
 
         private float GetMoveFactor()
