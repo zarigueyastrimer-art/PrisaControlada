@@ -32,6 +32,11 @@ public sealed class RedFilterRendererFeature : ScriptableRendererFeature
         if (renderingData.cameraData.cameraType == CameraType.Preview || renderingData.cameraData.cameraType == CameraType.Reflection)
             return;
 
+        // The HUD slot previews render to RenderTextures with the same renderer;
+        // the health filter must not apply to them (they keep their color).
+        if (renderingData.cameraData.camera.targetTexture != null)
+            return;
+
         if (!RedFilterVolumeComponent.IsEffectActive())
             return;
 

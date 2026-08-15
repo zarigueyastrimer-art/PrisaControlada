@@ -15,14 +15,29 @@ namespace PrisaControlada.Player
 
         private PlayerHealth _health;
         private bool _wasActive;
+        private bool _forceNeutral;
 
         private void Awake()
         {
             _health = GetComponent<PlayerHealth>();
+            _forceNeutral = false;
+        }
+
+        public void ForceNeutralLook(bool force = true)
+        {
+            _forceNeutral = force;
+            if (_forceNeutral)
+                RedFilterVolumeComponent.SetNeutral();
         }
 
         private void Update()
         {
+            if (_forceNeutral)
+            {
+                RedFilterVolumeComponent.SetNeutral();
+                return;
+            }
+
             if (_health == null) return;
 
             float max = _health.MaxHealth;

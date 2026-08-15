@@ -41,7 +41,7 @@ namespace PrisaControlada.Player
 
         private void Die()
         {
-            Debug.Log("[PlayerHealth] JUGADOR MUERTO (HP 0). Solo debug: seguís moviéndote.");
+            Debug.Log("[PlayerHealth] JUGADOR MUERTO (HP 0).");
             OnDied?.Invoke();
         }
     }

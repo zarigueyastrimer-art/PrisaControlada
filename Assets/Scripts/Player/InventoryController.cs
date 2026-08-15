@@ -84,10 +84,10 @@ namespace PrisaControlada.Player
                 TryGrab();
 
             if (_slot1Action != null && _slot1Action.WasPressedThisFrame())
-                SwapSlot(0);
+                UseSlot(0);
 
             if (_slot2Action != null && _slot2Action.WasPressedThisFrame())
-                SwapSlot(1);
+                UseSlot(1);
 
             if (_dropAction != null && _dropAction.WasPressedThisFrame())
                 ThrowHeldItem();
@@ -110,7 +110,7 @@ namespace PrisaControlada.Player
             }
         }
 
-        private void SwapSlot(int index)
+        private void UseSlot(int index)
         {
             if (index < 0 || index >= SlotCount) return;
 
@@ -118,12 +118,13 @@ namespace PrisaControlada.Player
 
             if (_heldItem != null)
             {
-                _slots[index] = _heldItem;
-                _heldItem = null;
-                HideItem(_slots[index]);
-
-                if (inSlot != null)
-                    TakeToHand(inSlot);
+                // No swapping: a held item can only be stored in an empty slot.
+                if (inSlot == null)
+                {
+                    _slots[index] = _heldItem;
+                    _heldItem = null;
+                    HideItem(_slots[index]);
+                }
             }
             else if (inSlot != null)
             {

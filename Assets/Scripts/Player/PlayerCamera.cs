@@ -13,6 +13,9 @@ namespace PrisaControlada.Player
 
         [Header("Lag Settings")]
         [SerializeField, Range(0f, 0.5f)] private float rotationLag = 0.12f;
+        [SerializeField, Range(0f, 0.5f)] private float maxRotationLag = 0.35f;
+        [SerializeField, Range(1f, 4f)] private float lagExponent = 2f;
+        [SerializeField, Min(0f)] private int lagHealthThreshold = 25;
 
         [Header("Tilt Settings")]
         [SerializeField] private float maxTiltAngle = 4f;
@@ -22,6 +25,7 @@ namespace PrisaControlada.Player
 
         private Camera _cam;
         private PlayerController _player;
+        private PlayerHealth _health;
 
         private float _targetPitch;
         private float _targetYaw;
@@ -33,6 +37,7 @@ namespace PrisaControlada.Player
         {
             _cam = GetComponent<Camera>();
             _player = GetComponentInParent<PlayerController>();
+            _health = GetComponentInParent<PlayerHealth>();
         }
 
         private void Start()
@@ -58,9 +63,18 @@ namespace PrisaControlada.Player
 
             // First-order exponential approach. No spring, so it can never overshoot,
             // oscillate, or produce NaN no matter how fast the mouse moves.
-            float blend = rotationLag <= 0f
+            float effectiveLag = rotationLag;
+            if (_health != null)
+            {
+                float hp01 = Mathf.Clamp01((float)_health.CurrentHealth / _health.MaxHealth);
+                float range = Mathf.Max(0.01f, 1f - Mathf.Clamp01((float)lagHealthThreshold / _health.MaxHealth));
+                float t = Mathf.Clamp01((1f - hp01) / range);
+                effectiveLag = Mathf.Lerp(rotationLag, maxRotationLag, Mathf.Pow(t, lagExponent));
+            }
+
+            float blend = effectiveLag <= 0f
                 ? 1f
-                : 1f - Mathf.Exp(-(1f / rotationLag) * Time.deltaTime);
+                : 1f - Mathf.Exp(-(1f / effectiveLag) * Time.deltaTime);
 
             _pitch = Mathf.Lerp(_pitch, _targetPitch, blend);
             _yaw = Mathf.LerpAngle(_yaw, _targetYaw, blend);

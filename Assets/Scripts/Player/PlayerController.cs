@@ -64,6 +64,7 @@ namespace PrisaControlada.Player
         private float _crouchBlend;
         private float _crouchBlendVelocity;
         private float _crouchSwayPitch;
+        private bool _controlEnabled = true;
 
         public float HorizontalSpeed => _moveDirection.magnitude;
         public bool IsSprinting => _isSprinting;
@@ -72,6 +73,12 @@ namespace PrisaControlada.Player
         public float RunSpeed => runSpeed;
         public Vector3 MoveVector => _moveDirection;
         public InputActionAsset InputActions => inputActions;
+        public bool ControlEnabled => _controlEnabled;
+
+        public void SetControlEnabled(bool enabled)
+        {
+            _controlEnabled = enabled;
+        }
 
         private void Awake()
         {
@@ -145,6 +152,12 @@ namespace PrisaControlada.Player
 
         private void HandleMovement()
         {
+            if (!_controlEnabled)
+            {
+                _moveDirection = Vector3.zero;
+                return;
+            }
+
             Vector2 input = _moveAction != null ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
             _isSprinting = !_isCrouching && _sprintAction != null && _sprintAction.IsPressed();
             float baseSpeed = _isCrouching ? crouchSpeed : (_isSprinting ? runSpeed : walkSpeed);
@@ -201,6 +214,8 @@ namespace PrisaControlada.Player
 
         private void HandleCrouch()
         {
+            if (!_controlEnabled) return;
+
             bool wantCrouch = _crouchAction != null && _crouchAction.IsPressed();
 
             if (wantCrouch)

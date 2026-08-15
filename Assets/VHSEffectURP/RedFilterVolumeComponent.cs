@@ -22,6 +22,16 @@ public sealed class RedFilterVolumeComponent : VolumeComponent, IPostProcessComp
         return s_Intensity > 0f || s_Gamma > 1.001f || s_BlurAmount > 0.001f;
     }
 
+    public static void SetNeutral()
+    {
+        s_Intensity = 0f;
+        s_RedSensitivity = 4f;
+        s_RedStrength = 1f;
+        s_Gamma = 1f;
+        s_BlurAmount = 0f;
+        s_BlurRadius = 3f;
+    }
+
     public RedFilterVolumeComponent()
     {
         displayName = "Red Filter";
