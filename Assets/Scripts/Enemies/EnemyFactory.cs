@@ -43,6 +43,12 @@ namespace PrisaControlada.Enemies
             agent.angularSpeed = 720f;
             agent.updateRotation = false;
 
+            // Solid collider so the player cannot walk through the enemy.
+            CapsuleCollider bodyCollider = go.AddComponent<CapsuleCollider>();
+            bodyCollider.radius = 0.45f;
+            bodyCollider.height = 2f;
+            bodyCollider.center = new Vector3(0f, 1f, 0f);
+
             AddLenses(go);
 
             Type componentType = type switch
@@ -53,7 +59,10 @@ namespace PrisaControlada.Enemies
                 _ => typeof(NemesisEnemy)
             };
 
-            return (EnemyBase)go.AddComponent(componentType);
+            EnemyBase enemy = (EnemyBase)go.AddComponent(componentType);
+            enemy.ApplyDefaultStats();
+
+            return enemy;
         }
 
         private static void AddLenses(GameObject parent)

@@ -49,6 +49,11 @@ namespace PrisaControlada.Enemies
         protected override void Awake()
         {
             base.Awake();
+        }
+
+        public override void ApplyDefaultStats()
+        {
+            base.ApplyDefaultStats();
             maxHealth = 300;
             moveSpeed = 1.6f;
             contactDamage = 40;

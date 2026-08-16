@@ -16,11 +16,12 @@ namespace PrisaControlada.Enemies
         [SerializeField] protected float attackRange = 1.5f;
 
         [Header("Attack Collider")]
-        [SerializeField] private float attackWindup = 0.5f;
-        [SerializeField] private float attackActiveTime = 0.2f;
-        [SerializeField] private float damageRadius = 0.6f;
-        [SerializeField] private float damageOffset = 0.7f;
-        [SerializeField] private float damageHeight = 1.1f;
+        [SerializeField] protected float attackWindup = 0.5f;
+        [SerializeField] protected float attackActiveTime = 0.2f;
+        [SerializeField] protected float damageRadius = 0.6f;
+        [SerializeField] protected float damageOffset = 0.7f;
+        [SerializeField] protected float damageHeight = 1.1f;
+        [SerializeField] private bool showAttackDebug = true;
 
         [Header("Vision")]
         [SerializeField] protected float viewRange = 16f;
@@ -43,6 +44,8 @@ namespace PrisaControlada.Enemies
         public int MaxHealth => maxHealth;
         public bool Dead => IsDead;
         public bool IsAttacking => _isAttacking;
+
+        public virtual void ApplyDefaultStats() { }
 
         protected virtual void Awake()
         {
@@ -206,7 +209,46 @@ namespace PrisaControlada.Enemies
             dmg.Setup(PlayerHealth, contactDamage);
             _activeDamageCollider = go;
 
+            if (showAttackDebug)
+                AddAttackDebugVisual(go, sc);
+
             dmg.CheckOverlap();
+        }
+
+        private void AddAttackDebugVisual(GameObject parent, SphereCollider collider)
+        {
+            GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            visual.name = "AttackRangeDebug";
+            visual.transform.SetParent(parent.transform, false);
+
+            // Match the collider's effective world-space radius (the enemy scales x/z).
+            Vector3 lossy = parent.transform.lossyScale;
+            float worldRadius = collider.radius * Mathf.Max(lossy.x, lossy.z);
+            float d = worldRadius * 2f;
+            visual.transform.localScale = new Vector3(d / lossy.x, d / lossy.y, d / lossy.z);
+
+            Collider visualCollider = visual.GetComponent<Collider>();
+            if (visualCollider != null) visualCollider.enabled = false;
+
+            Renderer renderer = visual.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                renderer.sharedMaterial = CreateDebugMaterial();
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+        }
+
+        private static Material _debugMat;
+
+        private static Material CreateDebugMaterial()
+        {
+            if (_debugMat != null) return _debugMat;
+
+            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) shader = Shader.Find("Sprites/Default");
+
+            _debugMat = new Material(shader) { color = new Color(1f, 0.35f, 0f, 0.35f) };
+            return _debugMat;
         }
 
         protected bool PlayerIsLookingAt(Vector3 worldPos, float maxAngle)

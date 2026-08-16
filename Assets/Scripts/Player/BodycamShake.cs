@@ -27,11 +27,15 @@ namespace PrisaControlada.Player
         [SerializeField, Range(0f, 3f)] private float crouchMoveThreshold = 0.5f;
 
         [Header("Impact Shake")]
-        [SerializeField, Range(0f, 20f)] private float impactAngular = 5f;
-        [SerializeField, Range(0f, 0.5f)] private float impactPositional = 0.08f;
+        [SerializeField, Range(0f, 20f)] private float impactAngular = 8f;
+        [SerializeField, Range(0f, 0.5f)] private float impactPositional = 0.14f;
         [SerializeField, Range(1f, 30f)] private float impactFrequency = 22f;
         [SerializeField, Range(0.5f, 4f)] private float traumaExponent = 2.2f;
         [SerializeField, Range(0.1f, 5f)] private float recoverySpeed = 1.2f;
+
+        [Header("Damage Impact")]
+        [SerializeField, Min(0f)] private float minDamageStress = 0.45f;
+        [SerializeField, Min(0f)] private float maxDamageStress = 1f;
 
         [Header("Health Limp")]
         [SerializeField, Min(0f)] private float limpFrequency = 2.2f;
@@ -54,6 +58,7 @@ namespace PrisaControlada.Player
         private float _trauma;
         private Vector3 _angularOffset;
         private Vector3 _positionalOffset;
+        private int _lastHealth;
 
         public float Trauma => _trauma;
 
@@ -63,6 +68,31 @@ namespace PrisaControlada.Player
             _player = GetComponentInParent<PlayerController>();
             _health = GetComponentInParent<PlayerHealth>();
             _seed = Random.value * 1000f;
+        }
+
+        private void OnEnable()
+        {
+            if (_health != null)
+            {
+                _health.OnDamaged -= OnPlayerDamaged;
+                _health.OnDamaged += OnPlayerDamaged;
+                _lastHealth = _health.CurrentHealth;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (_health != null)
+                _health.OnDamaged -= OnPlayerDamaged;
+        }
+
+        private void OnPlayerDamaged(int currentHealth)
+        {
+            int amount = Mathf.Max(0, _lastHealth - currentHealth);
+            _lastHealth = currentHealth;
+
+            float t = Mathf.Clamp01((float)amount / Mathf.Max(1, _health.MaxHealth));
+            InduceStress(Mathf.Lerp(minDamageStress, maxDamageStress, t));
         }
 
         public void InduceStress(float stress)
