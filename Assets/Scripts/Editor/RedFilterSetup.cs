@@ -13,7 +13,6 @@ namespace PrisaControlada.Editor
         private const string RendererDataPath = "Assets/Settings/PC_Renderer.asset";
         private const string ProfilePath = "Assets/Prototype/UI/NoisePostFX.asset";
 
-        [MenuItem("Tools/PrisaControlada/Setup Red Filter")]
         public static void SetupRedFilter()
         {
             Scene scene = SceneManager.GetActiveScene();

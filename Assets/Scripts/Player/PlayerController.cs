@@ -84,6 +84,19 @@ namespace PrisaControlada.Player
         {
             _controller = GetComponent<CharacterController>();
 
+            // The CharacterController is the player's only collider. Any extra collider
+            // on the same object (e.g. a CapsuleCollider overlapping the controller)
+            // makes isGrounded always return true, which disables gravity (floating/flying).
+            Collider[] ownColliders = GetComponents<Collider>();
+            foreach (Collider col in ownColliders)
+            {
+                if (col != _controller)
+                {
+                    col.enabled = false;
+                    Debug.LogWarning("[PlayerController] Collider extra en el jugador deshabilitado: " + col.GetType().Name + ". Solo debe haber un CharacterController.", this);
+                }
+            }
+
             if (health == null)
                 health = GetComponent<PlayerHealth>();
 

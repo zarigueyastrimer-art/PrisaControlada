@@ -10,7 +10,6 @@ namespace PrisaControlada.Editor
         private const string EnemyFolder = "Assets/Prefabs/Enemies";
         private const string MaterialFolder = "Assets/Materials/Enemies";
 
-        [MenuItem("Tools/PrisaControlada/Create Enemy Prefabs")]
         public static void CreateEnemyPrefabs()
         {
             EnsureFolder(EnemyFolder);

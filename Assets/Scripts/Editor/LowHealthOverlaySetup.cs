@@ -13,7 +13,6 @@ namespace PrisaControlada.Editor
         private const string BlurShaderPath = "Assets/VHSEffectURP/health/UIBlur.shader";
         private const string BlurMaterialPath = "Assets/VHSEffectURP/health/UIBlur.mat";
 
-        [MenuItem("Tools/PrisaControlada/Add Low Health Overlay")]
         public static void AddLowHealthOverlay()
         {
             Scene scene = SceneManager.GetActiveScene();

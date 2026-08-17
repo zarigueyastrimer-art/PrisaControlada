@@ -14,7 +14,6 @@ namespace PrisaControlada.Editor
         private const string ChromaShaderPath = "Assets/VHSEffectURP/dead/ChromaKey.shader";
         private const string VhsMaterialPath = "Assets/VHSEffectURP/VhsChromaKey.mat";
 
-        [MenuItem("Tools/PrisaControlada/Setup VHS Overlay")]
         public static void SetupVhsOverlay()
         {
             Scene scene = SceneManager.GetActiveScene();

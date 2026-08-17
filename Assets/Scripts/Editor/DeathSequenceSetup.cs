@@ -18,7 +18,6 @@ namespace PrisaControlada.Editor
         private const string GameOverBgPath = "Assets/VHSEffectURP/dead/FondoPantallaDeDerrota.png";
         private const string ButtonSpritePath = "Assets/VHSEffectURP/dead/boton.png";
 
-        [MenuItem("Tools/PrisaControlada/Setup Death Sequence")]
         public static void SetupDeathSequence()
         {
             Scene scene = SceneManager.GetActiveScene();

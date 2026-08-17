@@ -23,6 +23,7 @@ namespace PrisaControlada.Items
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
+            _rb.sleepThreshold = 0f;
             _objectRadius = ComputeObjectRadius();
         }
 

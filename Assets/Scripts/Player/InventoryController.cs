@@ -95,18 +95,34 @@ namespace PrisaControlada.Player
 
         private void TryGrab()
         {
-            if (_heldItem != null) return;
             if (viewCamera == null || _holdPoint == null) return;
 
             Ray ray = new Ray(viewCamera.transform.position, viewCamera.transform.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, pickupMask, QueryTriggerInteraction.Ignore))
+            if (!Physics.Raycast(ray, out RaycastHit hit, pickupRange, pickupMask, QueryTriggerInteraction.Ignore))
+                return;
+
+            DrawerController drawer = hit.collider.GetComponentInParent<DrawerController>();
+            if (drawer != null)
             {
-                PickupItem item = hit.collider.GetComponentInParent<PickupItem>();
-                if (item != null)
-                {
-                    TakeToHand(item);
-                    InventoryChanged?.Invoke();
-                }
+                drawer.ToggleDrawer(hit.collider);
+                return;
+            }
+
+            DoorController door = hit.collider.GetComponentInParent<DoorController>();
+            if (door != null)
+            {
+                if (door.IsDoorHit(hit.collider))
+                    door.Toggle();
+                return;
+            }
+
+            if (_heldItem != null) return;
+
+            PickupItem item = hit.collider.GetComponentInParent<PickupItem>();
+            if (item != null)
+            {
+                TakeToHand(item);
+                InventoryChanged?.Invoke();
             }
         }
 

@@ -10,7 +10,6 @@ namespace PrisaControlada.Editor
 {
     public static class EnemySceneSetup
     {
-        [MenuItem("Tools/PrisaControlada/Add Test Enemies")]
         public static void AddTestEnemies()
         {
             Scene scene = SceneManager.GetActiveScene();
@@ -35,7 +34,6 @@ namespace PrisaControlada.Editor
             Debug.Log("[EnemySceneSetup] 4 test enemies spawned (red=zombie, black=runner, blue=blind, yellow=nemesis).");
         }
 
-        [MenuItem("Tools/PrisaControlada/Add Enemy Spawner")]
         public static void AddEnemySpawner()
         {
             Scene scene = SceneManager.GetActiveScene();
@@ -68,7 +66,6 @@ namespace PrisaControlada.Editor
             Debug.Log("[EnemySceneSetup] EnemySpawner added with 4 spawn points.");
         }
 
-        [MenuItem("Tools/PrisaControlada/Setup Navigation (NavMesh)")]
         public static void SetupNavigation()
         {
             Scene scene = SceneManager.GetActiveScene();

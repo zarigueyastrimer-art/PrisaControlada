@@ -1,6 +1,7 @@
 using PrisaControlada.Core;
 using PrisaControlada.Items;
 using PrisaControlada.Player;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -19,13 +20,15 @@ namespace PrisaControlada.Editor
         private const string MaterialsFolder = "Assets/Prototype/Materials";
         private const string UIFolder = "Assets/Prototype/UI";
         private const string PostFxProfilePath = "Assets/Prototype/UI/NoisePostFX.asset";
+        private const string FurnitureFbxPath = "Assets/MyAssets/mueblexample.fbx";
+        private const string CrosshairSpritePath = "Assets/VHSEffectURP/hud/Circle.png";
 
         private const int SlotCount = 2;
         private const int PreviewLayerA = 8;
         private const int PreviewLayerB = 9;
         private const float PreviewDistance = 4f;
+        private const int DrawerLayer = 10;
 
-        [MenuItem("Tools/PrisaControlada/Setup Prototype Scene")]
         public static void CreatePrototypeScene()
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
@@ -42,6 +45,7 @@ namespace PrisaControlada.Editor
             CreateReferenceCubes();
             CreatePlayer(inputActions);
             CreatePickupTestCubes();
+            CreateFurniture();
             CreateLight();
 
             RenderSettings.ambientMode = AmbientMode.Flat;
@@ -93,7 +97,7 @@ namespace PrisaControlada.Editor
             controller.radius = 0.4f;
             controller.center = new Vector3(0f, 0.9f, 0f);
             controller.includeLayers = Physics.AllLayers;
-            controller.excludeLayers = 0;
+            controller.excludeLayers = 1 << DrawerLayer;
 
             PlayerController playerController = player.AddComponent<PlayerController>();
 
@@ -151,7 +155,6 @@ namespace PrisaControlada.Editor
             light.shadows = LightShadows.Soft;
         }
 
-        [MenuItem("Tools/PrisaControlada/Add Pickup Test Cubes")]
         public static void AddPickupTestCubesToScene()
         {
             Scene scene = SceneManager.GetActiveScene();
@@ -197,12 +200,14 @@ namespace PrisaControlada.Editor
             }
 
             EnsurePlayerUI(player);
+            EnsurePlayerIgnoresDrawerLayer(scene);
         }
 
         private static void EnsurePlayerUI(GameObject player)
         {
             EnsureInventoryHUDUI(player);
             EnsureMicNoiseMeterUI(player);
+            EnsureCrosshairUI(player);
         }
 
         private static void EnsureInventoryHUDUI(GameObject player)
@@ -461,11 +466,345 @@ namespace PrisaControlada.Editor
             canvasT.gameObject.SetActive(false);
         }
 
+        public static void AddCrosshairToScene()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                EditorUtility.DisplayDialog("Crosshair", "Save the scene first.", "OK");
+                return;
+            }
+
+            GameObject player = FindPlayer(scene);
+            if (player == null)
+            {
+                EditorUtility.DisplayDialog("Crosshair", "No Player found in the scene.", "OK");
+                return;
+            }
+
+            EnsureCrosshairUI(player);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+
+        private static void EnsureCrosshairUI(GameObject player)
+        {
+            Transform playerT = player.transform;
+
+            Transform canvasT = playerT.Find("Crosshair_Canvas");
+            if (canvasT == null)
+            {
+                RectTransform canvasRect = CreateRect("Crosshair_Canvas", playerT);
+                canvasT = canvasRect;
+                Canvas canvas = canvasRect.gameObject.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 300;
+
+                CanvasScaler scaler = canvasRect.gameObject.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
+
+                CanvasGroup group = canvasRect.gameObject.AddComponent<CanvasGroup>();
+                group.alpha = 0f;
+                group.interactable = false;
+                group.blocksRaycasts = false;
+            }
+
+            Image crosshairImage = null;
+            Transform imageT = canvasT.Find("Crosshair");
+            if (imageT == null)
+            {
+                RectTransform imageRect = CreateRect("Crosshair", canvasT);
+                imageRect.anchorMin = new Vector2(0.5f, 0.5f);
+                imageRect.anchorMax = new Vector2(0.5f, 0.5f);
+                imageRect.pivot = new Vector2(0.5f, 0.5f);
+                imageRect.anchoredPosition = Vector2.zero;
+                imageRect.sizeDelta = new Vector2(64f, 64f);
+
+                crosshairImage = imageRect.gameObject.AddComponent<Image>();
+                crosshairImage.preserveAspect = true;
+                crosshairImage.raycastTarget = false;
+
+                imageT = imageRect;
+            }
+            else
+            {
+                crosshairImage = imageT.GetComponent<Image>();
+            }
+
+            Sprite sprite = EnsureCrosshairSprite();
+            if (sprite != null && crosshairImage != null)
+                crosshairImage.sprite = sprite;
+
+            InteractionCrosshair crosshair = canvasT.GetComponent<InteractionCrosshair>();
+            if (crosshair == null)
+                crosshair = canvasT.gameObject.AddComponent<InteractionCrosshair>();
+
+            Camera cam = player.GetComponentInChildren<Camera>();
+
+            SerializedObject so = new SerializedObject(crosshair);
+            so.FindProperty("viewCamera").objectReferenceValue = cam;
+            so.FindProperty("crosshairImage").objectReferenceValue = crosshairImage;
+            so.ApplyModifiedProperties();
+        }
+
+        private static Sprite EnsureCrosshairSprite()
+        {
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(CrosshairSpritePath);
+            if (texture == null)
+            {
+                Debug.LogWarning($"Crosshair texture not found at {CrosshairSpritePath}");
+                return null;
+            }
+
+            string path = AssetDatabase.GetAssetPath(texture);
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null)
+                return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+
+            bool changed = false;
+            if (importer.textureType != TextureImporterType.Sprite)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                changed = true;
+            }
+
+            if (importer.spriteImportMode != SpriteImportMode.Single)
+            {
+                importer.spriteImportMode = SpriteImportMode.Single;
+                changed = true;
+            }
+
+            if (changed)
+                importer.SaveAndReimport();
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
         private static RectTransform CreateRect(string name, Transform parent)
         {
             GameObject go = new GameObject(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
             return go.GetComponent<RectTransform>();
+        }
+
+        public static void AddFurnitureToScene()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                EditorUtility.DisplayDialog("Furniture", "Save the scene first.", "OK");
+                return;
+            }
+
+            EnsurePlayerIgnoresDrawerLayer(scene);
+            CreateFurniture();
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+
+        private static void EnsurePlayerIgnoresDrawerLayer(Scene scene)
+        {
+            if (scene == null || !scene.IsValid()) return;
+
+            GameObject player = FindPlayer(scene);
+            if (player == null) return;
+
+            CharacterController controller = player.GetComponent<CharacterController>();
+            if (controller == null) return;
+
+            SerializedObject so = new SerializedObject(controller);
+            SerializedProperty prop = so.FindProperty("m_ExcludeLayers");
+            if (prop != null)
+            {
+                prop.intValue |= (1 << DrawerLayer);
+                so.ApplyModifiedProperties();
+            }
+        }
+
+        private static GameObject FindPlayer(Scene scene)
+        {
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.name == "Player")
+                    return root;
+            }
+
+            return null;
+        }
+
+        private static GameObject CreateFurniture()
+        {
+            GameObject furniture = GameObject.Find("Mueble");
+
+            if (furniture == null)
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(FurnitureFbxPath);
+                if (prefab == null)
+                {
+                    EditorUtility.DisplayDialog("Furniture", $"FBX not found at {FurnitureFbxPath}", "OK");
+                    return null;
+                }
+
+                furniture = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                furniture.name = "Mueble";
+                furniture.transform.position = new Vector3(2f, 0f, 4f);
+            }
+
+            Transform body = null;
+            List<Transform> drawerNodes = new List<Transform>();
+            float largestVolume = -1f;
+
+            Transform[] allTransforms = furniture.GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in allTransforms)
+            {
+                if (child == furniture.transform) continue;
+                Renderer renderer = child.GetComponent<Renderer>();
+                if (renderer == null) continue;
+
+                float volume = renderer.bounds.size.x * renderer.bounds.size.y * renderer.bounds.size.z;
+                if (volume > largestVolume)
+                {
+                    largestVolume = volume;
+                    body = child;
+                }
+            }
+
+            foreach (Transform child in allTransforms)
+            {
+                if (child == body) continue;
+                Renderer renderer = child.GetComponent<Renderer>();
+                if (renderer == null) continue;
+                drawerNodes.Add(child);
+            }
+
+            if (body == null || drawerNodes.Count == 0)
+            {
+                Debug.LogWarning("Furniture: could not detect body/drawer nodes from the FBX.");
+                return furniture;
+            }
+
+            body.gameObject.layer = 0;
+            FitBoxCollider(GetOrAddBoxCollider(body), body);
+
+            DrawerController drawerController = furniture.GetComponent<DrawerController>();
+            if (drawerController == null)
+                drawerController = furniture.AddComponent<DrawerController>();
+
+            SerializedObject so = new SerializedObject(drawerController);
+            SerializedProperty drawersProp = so.FindProperty("drawers");
+            drawersProp.arraySize = drawerNodes.Count;
+
+            for (int i = 0; i < drawerNodes.Count; i++)
+            {
+                Transform node = drawerNodes[i];
+                node.gameObject.layer = DrawerLayer;
+
+                BoxCollider box = GetOrAddBoxCollider(node);
+                FitBoxCollider(box, node);
+                ExtendDrawerCollider(box, body, node);
+
+                SerializedProperty element = drawersProp.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("drawer").objectReferenceValue = node;
+            }
+
+            so.ApplyModifiedProperties();
+            return furniture;
+        }
+
+        private static BoxCollider GetOrAddBoxCollider(Transform target)
+        {
+            BoxCollider box = target.GetComponent<BoxCollider>();
+            if (box != null)
+                return box;
+
+            Collider other = target.GetComponent<Collider>();
+            if (other != null)
+                Object.DestroyImmediate(other);
+
+            return target.gameObject.AddComponent<BoxCollider>();
+        }
+
+        private static Bounds GetRenderBounds(Transform target)
+        {
+            Bounds bounds = new Bounds(target.position, Vector3.zero);
+            foreach (Renderer renderer in target.GetComponentsInChildren<Renderer>())
+                bounds.Encapsulate(renderer.bounds);
+
+            return bounds;
+        }
+
+        private static float HalfExtentAlong(Vector3 extents, Vector3 direction)
+        {
+            return extents.x * Mathf.Abs(direction.x)
+                 + extents.y * Mathf.Abs(direction.y)
+                 + extents.z * Mathf.Abs(direction.z);
+        }
+
+        private static void ExtendDrawerCollider(BoxCollider collider, Transform body, Transform drawer)
+        {
+            Bounds bodyBounds = GetRenderBounds(body);
+            Bounds drawerBounds = GetRenderBounds(drawer);
+
+            Vector3 away = drawerBounds.center - bodyBounds.center;
+            away.y = 0f;
+            if (away.sqrMagnitude < 0.0001f)
+                away = drawer.forward;
+
+            away.Normalize();
+
+            float bodyFront = Vector3.Dot(bodyBounds.center, away) + HalfExtentAlong(bodyBounds.extents, away);
+            float drawerFront = Vector3.Dot(drawerBounds.center, away) + HalfExtentAlong(drawerBounds.extents, away);
+
+            float extension = (bodyFront - drawerFront) + 0.1f;
+            if (extension <= 0f)
+                return;
+
+            Vector3 localAway = drawer.InverseTransformDirection(away);
+            int axis = 0;
+            float maxAbs = -1f;
+            for (int i = 0; i < 3; i++)
+            {
+                float abs = Mathf.Abs(localAway[i]);
+                if (abs > maxAbs)
+                {
+                    maxAbs = abs;
+                    axis = i;
+                }
+            }
+
+            float scale = Mathf.Abs(drawer.lossyScale[axis]);
+            if (scale < 0.0001f)
+                scale = 1f;
+
+            float localExtension = extension / scale;
+
+            Vector3 center = collider.center;
+            Vector3 size = collider.size;
+            float sign = Mathf.Sign(localAway[axis]);
+
+            center[axis] += sign * localExtension * 0.5f;
+            size[axis] += localExtension;
+
+            collider.center = center;
+            collider.size = size;
+        }
+
+        private static void FitBoxCollider(BoxCollider collider, Transform target)
+        {
+            Bounds bounds = new Bounds(target.position, Vector3.zero);
+            Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in renderers)
+                bounds.Encapsulate(renderer.bounds);
+
+            collider.center = target.InverseTransformPoint(bounds.center);
+            collider.size = new Vector3(
+                bounds.size.x / Mathf.Max(target.lossyScale.x, 0.0001f),
+                bounds.size.y / Mathf.Max(target.lossyScale.y, 0.0001f),
+                bounds.size.z / Mathf.Max(target.lossyScale.z, 0.0001f));
         }
 
         private static void CreatePickupTestCubes()
@@ -492,7 +831,7 @@ namespace PrisaControlada.Editor
 
                 Rigidbody rb = cube.AddComponent<Rigidbody>();
                 rb.mass = 0.5f;
-                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+                rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
                 cube.AddComponent<PickupItem>();
             }
