@@ -98,7 +98,7 @@ namespace PrisaControlada.Player
             if (viewCamera == null || _holdPoint == null) return;
 
             Ray ray = new Ray(viewCamera.transform.position, viewCamera.transform.forward);
-            if (!Physics.Raycast(ray, out RaycastHit hit, pickupRange, pickupMask, QueryTriggerInteraction.Ignore))
+            if (!Physics.Raycast(ray, out RaycastHit hit, pickupRange, pickupMask, QueryTriggerInteraction.Collide))
                 return;
 
             DrawerController drawer = hit.collider.GetComponentInParent<DrawerController>();
@@ -113,6 +113,18 @@ namespace PrisaControlada.Player
             {
                 if (door.IsDoorHit(hit.collider))
                     door.Toggle();
+                return;
+            }
+
+            AmmoPickup ammo = hit.collider.GetComponentInParent<AmmoPickup>();
+            if (ammo != null)
+            {
+                if (ammo.TryCollect())
+                {
+                    Debug.Log($"<color=#77ff77>[AmmoPickup] Municion agarrada: +{ammo.Amount} balas externas. Item destruido.</color>");
+                    Destroy(ammo.gameObject);
+                }
+                InventoryChanged?.Invoke();
                 return;
             }
 
@@ -134,6 +146,11 @@ namespace PrisaControlada.Player
 
             if (_heldItem != null)
             {
+                if (_heldItem.IsBusy)
+                {
+                    Debug.Log("<color=#ff7777>[Inventory] No podes guardar el arma mientras disparas/recargas/apuntas.</color>");
+                    return;
+                }
                 // No swapping: a held item can only be stored in an empty slot.
                 if (inSlot == null)
                 {
@@ -160,12 +177,19 @@ namespace PrisaControlada.Player
 
         private void HideItem(PickupItem item)
         {
+            item.OnStoredInSlot();
             item.gameObject.SetActive(false);
         }
 
         private void ThrowHeldItem()
         {
             if (_heldItem == null) return;
+
+            if (_heldItem.IsBusy)
+            {
+                Debug.Log("<color=#ff7777>[Inventory] No podes tirar el arma mientras disparas/recargas/apuntas.</color>");
+                return;
+            }
 
             PickupItem item = _heldItem;
             _heldItem = null;

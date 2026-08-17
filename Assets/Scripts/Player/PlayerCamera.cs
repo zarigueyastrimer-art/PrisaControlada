@@ -97,5 +97,13 @@ namespace PrisaControlada.Player
             _cam.transform.localRotation = Quaternion.Euler(_pitch, 0f, _tilt);
             _player.transform.localRotation = Quaternion.Euler(0f, _yaw, 0f);
         }
+
+        public void AddRecoil(float pitchDegrees, float yawDegrees)
+        {
+            _targetPitch = Mathf.Clamp(_targetPitch - pitchDegrees, -lookXLimit, lookXLimit);
+            _targetYaw += yawDegrees;
+            float yawWrap = Mathf.Floor((_targetYaw + 180f) / 360f) * 360f;
+            if (yawWrap != 0f) _targetYaw -= yawWrap;
+        }
     }
 }

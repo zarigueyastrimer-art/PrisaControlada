@@ -98,6 +98,12 @@ namespace PrisaControlada.Player
         {
             if (IsDying) return;
             IsDying = true;
+
+            // Si el jugador tiene el arma equipada, se desequipa (se oculta el viewmodel).
+            WeaponController weapon = cam != null ? cam.GetComponent<WeaponController>() : null;
+            if (weapon != null && weapon.IsEquipped)
+                weapon.Unequip();
+
             StartCoroutine(DeathSequence());
         }
 

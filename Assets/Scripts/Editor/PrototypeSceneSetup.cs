@@ -24,8 +24,8 @@ namespace PrisaControlada.Editor
         private const string CrosshairSpritePath = "Assets/VHSEffectURP/hud/Circle.png";
 
         private const int SlotCount = 2;
-        private const int PreviewLayerA = 8;
-        private const int PreviewLayerB = 9;
+        private const int PreviewLayerA = 11;
+        private const int PreviewLayerB = 12;
         private const float PreviewDistance = 4f;
         private const int DrawerLayer = 10;
 

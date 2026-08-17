@@ -47,6 +47,8 @@ namespace PrisaControlada.Player
         [Header("References")]
         [SerializeField] private Transform cameraPivot;
         [SerializeField] private InputActionAsset inputActions;
+        [SerializeField] private WeaponController weapon;
+        [SerializeField, Range(0.1f, 1f)] private float weaponBusySpeedFactor = 0.5f;
 
         private CharacterController _controller;
         private InputAction _moveAction;
@@ -114,6 +116,9 @@ namespace PrisaControlada.Player
                 _sprintAction = inputActions.FindAction("Sprint");
                 _crouchAction = inputActions.FindAction("Crouch");
             }
+
+            if (weapon == null)
+                weapon = GetComponentInChildren<WeaponController>();
         }
 
         private void OnEnable()
@@ -172,8 +177,11 @@ namespace PrisaControlada.Player
             }
 
             Vector2 input = _moveAction != null ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
-            _isSprinting = !_isCrouching && _sprintAction != null && _sprintAction.IsPressed();
+            // Mientras apunta o recarga no se puede correr y se camina mas lento (~mitad).
+            bool weaponBusy = weapon != null && (weapon.IsAiming || weapon.IsReloading);
+            _isSprinting = !_isCrouching && !weaponBusy && _sprintAction != null && _sprintAction.IsPressed();
             float baseSpeed = _isCrouching ? crouchSpeed : (_isSprinting ? runSpeed : walkSpeed);
+            if (weaponBusy) baseSpeed *= weaponBusySpeedFactor;
             float speed = _isCrouching ? baseSpeed : baseSpeed * GetHealthSpeedFactor();
 
             Vector3 forward = transform.TransformDirection(Vector3.forward);

@@ -89,6 +89,7 @@ namespace PrisaControlada.Enemies
             IsDead = true;
             Agent.enabled = false;
             enabled = false;
+            Destroy(gameObject);
         }
 
         protected bool CanSeePlayer()

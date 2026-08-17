@@ -52,7 +52,7 @@ namespace PrisaControlada.Player
         private bool IsLookingAtInteractable()
         {
             Ray ray = new Ray(viewCamera.transform.position, viewCamera.transform.forward);
-            if (!Physics.Raycast(ray, out RaycastHit hit, range, rayMask, QueryTriggerInteraction.Ignore))
+            if (!Physics.Raycast(ray, out RaycastHit hit, range, rayMask, QueryTriggerInteraction.Collide))
                 return false;
 
             DrawerController drawer = hit.collider.GetComponentInParent<DrawerController>();
@@ -62,6 +62,9 @@ namespace PrisaControlada.Player
             DoorController door = hit.collider.GetComponentInParent<DoorController>();
             if (door != null)
                 return door.IsDoorHit(hit.collider);
+
+            if (hit.collider.GetComponentInParent<AmmoPickup>() != null)
+                return true;
 
             return hit.collider.GetComponentInParent<PickupItem>() != null;
         }

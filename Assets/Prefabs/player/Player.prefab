@@ -5276,7 +5276,7 @@ MonoBehaviour:
   damage: 35
   fireRate: 1.5
   range: 100
-  maxAmmo: 6
+  maxAmmo: 8
   reloadTime: 2.36
   shootMask:
     serializedVersion: 2

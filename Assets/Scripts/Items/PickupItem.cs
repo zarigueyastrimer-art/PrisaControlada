@@ -20,6 +20,8 @@ namespace PrisaControlada.Items
 
         public bool IsHeld { get; private set; }
 
+        public virtual bool IsBusy => false;
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
@@ -27,7 +29,7 @@ namespace PrisaControlada.Items
             _objectRadius = ComputeObjectRadius();
         }
 
-        public void PickUp(Transform holder, Vector3 holdOffset)
+        public virtual void PickUp(Transform holder, Vector3 holdOffset)
         {
             IsHeld = true;
             _holder = holder;
@@ -43,15 +45,19 @@ namespace PrisaControlada.Items
             transform.SetParent(null, true);
         }
 
-        public void Drop()
+        public virtual void Drop()
         {
             Release();
         }
 
-        public void Throw(Vector3 velocity)
+        public virtual void Throw(Vector3 velocity)
         {
             Release();
             _rb.linearVelocity = velocity;
+        }
+
+        public virtual void OnStoredInSlot()
+        {
         }
 
         private void Release()

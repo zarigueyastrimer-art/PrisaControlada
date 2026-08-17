@@ -47,9 +47,11 @@ namespace PrisaControlada.EditorTools
                 float gunReloadLen = gunClips.TryGetValue("reload", out var rc) ? rc.length : 2.36f;
                 var armController = BuildArmController(armClips, gunReloadLen, sb);
 
-                BuildWeaponInScene(gunController, armController, gunClips, armClips, sb);
-
+                // Los controllers se guardan YA (antes de tocar la escena) para que
+                // NUNCA queden vacios aunque falle el armado de la escena.
                 AssetDatabase.SaveAssets();
+
+                BuildWeaponInScene(gunController, armController, gunClips, armClips, sb);
                 EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
                 sb.AppendLine("\n== LISTO. Proba Play -> 1. Si el gun no queda en la mano, ajusta localPosition/localRotation de RevolverGun (hijo de hand.R). ==");
             }
@@ -251,6 +253,17 @@ namespace PrisaControlada.EditorTools
         {
             var controller = LoadOrCreateController(path);
             if (controller == null) { sb.AppendLine("ERROR creando controller " + label); return null; }
+
+            // Si el controller ya tiene estados (valido), se conserva tal cual para no
+            // pisar el contenido (los controllers se escribieron a mano con referencias
+            // correctas porque el API de Unity los guardaba vacios).
+            if (controller.layers.Length > 0 && controller.layers[0].stateMachine != null &&
+                controller.layers[0].stateMachine.states.Length > 0)
+            {
+                sb.AppendLine("  " + label + " controller ya tiene estados: se conserva (" + path + ")");
+                return controller;
+            }
+
             var sm = AddBaseLayer(controller);
 
             controller.AddParameter("Aim", AnimatorControllerParameterType.Bool);
@@ -319,6 +332,7 @@ namespace PrisaControlada.EditorTools
             ExitWithCondition(reload, idle, 0.95f, 0.1f, condition: ("Reloading", false));
 
             EditorUtility.SetDirty(controller);
+            EditorUtility.SetDirty(sm);
             sb.AppendLine("  " + label + " controller OK: " + path + " (" + controller.layers.Length + " capa)");
             return controller;
         }

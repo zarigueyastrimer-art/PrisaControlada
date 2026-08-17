@@ -11,8 +11,14 @@ namespace PrisaControlada.Player
         private const int PreviewHeight = 120;
         private const float PreviewDistance = 4f;
         private const float RotationSpeed = 25f;
-        private const int PreviewLayerA = 8;
-        private const int PreviewLayerB = 9;
+        private const int PreviewLayerA = 11;
+        private const int PreviewLayerB = 12;
+
+        [Header("Preview Presentation")]
+        [Tooltip("Inclinacion del objeto frente a la camara (grados). 0 = vista frontal; 90 = vista desde arriba.")]
+        [SerializeField] private float previewPitch = 75f;
+        [Tooltip("Rotacion horizontal del objeto frente a la camara (grados).")]
+        [SerializeField] private float previewYaw = 0f;
 
         [Header("Scene References")]
         [SerializeField] private InventoryController inventory;
@@ -82,6 +88,7 @@ namespace PrisaControlada.Player
                     visualRoot = visualRoots[i],
                     layer = i == 0 ? PreviewLayerA : PreviewLayerB
                 };
+                previewCameras[i].cullingMask = 1 << _slots[i].layer;
             }
 
             foreach (SlotPreview slot in _slots)
@@ -100,7 +107,7 @@ namespace PrisaControlada.Player
             foreach (SlotPreview slot in _slots)
             {
                 if (slot != null && slot.visual != null)
-                    slot.visual.transform.Rotate(0f, RotationSpeed * Time.deltaTime, 0f, Space.Self);
+                    slot.visual.transform.Rotate(0f, 0f, RotationSpeed * Time.deltaTime, Space.Self);
             }
         }
 
@@ -155,14 +162,81 @@ namespace PrisaControlada.Player
             slot.visual.transform.localPosition = Vector3.zero;
             slot.visual.transform.localRotation = Quaternion.identity;
 
+            // Presentacion: el VisualRoot es el punto en frente de la camara donde
+            // "vive" el objeto. Rotarlo es equivalente a orbitar la camara alrededor
+            // del objeto (ya que el objeto es hijo de la camara). Con previewPitch
+            // inclinamos la vista para mirar el arma desde arriba.
+            slot.visualRoot.localRotation = Quaternion.Euler(previewPitch, previewYaw, 0f);
+
+            // Tilt del arma: deja el cañon apuntando a la derecha (X) dentro del
+            // visual. El giro (Z) en Update se aplica sobre el contenedor y se ve
+            // como una moneda girando sobre el centro, ahora desde arriba.
+            GameObject tilt = new GameObject("TiltPivot");
+            tilt.layer = slot.layer;
+            tilt.transform.SetParent(slot.visual.transform, false);
+            tilt.transform.localRotation = Quaternion.Euler(0f, 90f, 0f) * Quaternion.Euler(-90f, 0f, 0f);
+            for (int i = slot.visual.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = slot.visual.transform.GetChild(i);
+                if (child == tilt.transform) continue;
+                child.SetParent(tilt.transform, true);
+            }
+
+            CenterVisualPivot(slot.visual);
+
             slot.camera.enabled = true;
             FitCameraToBounds(slot);
+        }
+
+        private static void CenterVisualPivot(GameObject visual)
+        {
+            if (visual == null) return;
+
+            Bounds bounds = new Bounds(visual.transform.position, Vector3.zero);
+            foreach (Renderer r in visual.GetComponentsInChildren<Renderer>(true))
+                bounds.Encapsulate(r.bounds);
+
+            Vector3 localCenter = visual.transform.InverseTransformPoint(bounds.center);
+            foreach (Transform child in visual.transform)
+                child.localPosition -= localCenter;
         }
 
         private static GameObject CreateVisualFrom(PickupItem item, int layer)
         {
             GameObject visual = new GameObject("PreviewVisual");
             visual.layer = layer;
+
+            Renderer[] renderers = item.GetComponentsInChildren<Renderer>(true);
+            bool hasSkinned = false;
+            foreach (Renderer r in renderers)
+                if (r is SkinnedMeshRenderer) { hasSkinned = true; break; }
+
+            if (hasSkinned)
+            {
+                // El preview necesita la jerarquia de huesos: se clona el subarbol que
+                // contiene renderers + huesos (rootBone) y se deja en pose bind.
+                Transform root = renderers[0].transform;
+                for (int i = 1; i < renderers.Length; i++)
+                    root = FindCommonAncestor(root, renderers[i].transform);
+                foreach (Renderer r in renderers)
+                    if (r is SkinnedMeshRenderer smr && smr.rootBone != null)
+                        root = FindCommonAncestor(root, smr.rootBone);
+
+                GameObject clone = Object.Instantiate(root.gameObject);
+                clone.SetActive(true);
+                clone.name = root.name;
+                clone.transform.SetParent(visual.transform, false);
+                SetLayerRecursive(clone, layer);
+                foreach (Animator anim in clone.GetComponentsInChildren<Animator>(true))
+                    Object.Destroy(anim);
+                foreach (Animation anim in clone.GetComponentsInChildren<Animation>(true))
+                    Object.Destroy(anim);
+                foreach (Rigidbody rb in clone.GetComponentsInChildren<Rigidbody>(true))
+                    Object.Destroy(rb);
+                foreach (Collider col in clone.GetComponentsInChildren<Collider>(true))
+                    Object.Destroy(col);
+                return visual;
+            }
 
             foreach (MeshFilter sourceFilter in item.GetComponentsInChildren<MeshFilter>())
             {
@@ -182,6 +256,29 @@ namespace PrisaControlada.Player
             }
 
             return visual;
+        }
+
+        private static Transform FindCommonAncestor(Transform a, Transform b)
+        {
+            while (b != null && !IsAncestorOrSelf(a, b)) a = a.parent;
+            return a;
+        }
+
+        private static bool IsAncestorOrSelf(Transform ancestor, Transform node)
+        {
+            while (node != null)
+            {
+                if (node == ancestor) return true;
+                node = node.parent;
+            }
+            return false;
+        }
+
+        private static void SetLayerRecursive(GameObject go, int layer)
+        {
+            go.layer = layer;
+            foreach (Transform child in go.transform)
+                SetLayerRecursive(child.gameObject, layer);
         }
 
         private void FitCameraToBounds(SlotPreview slot)
