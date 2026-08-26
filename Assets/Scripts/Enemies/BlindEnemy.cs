@@ -23,6 +23,7 @@ namespace PrisaControlada.Enemies
         [Header("First Encounter")]
         [SerializeField] private float teleportDistance = 2.5f;
         [SerializeField, Range(1f, 180f)] private float viewEscapeAngle = 75f;
+        [SerializeField, Range(0f, 1f)] private float screamHeardLevel = 0.8f;
         [SerializeField] private AudioSource voiceSource;
         [SerializeField] private AudioClip hearYouClip;
 
@@ -96,10 +97,12 @@ namespace PrisaControlada.Enemies
             base.Update();
 
             PruneNoise();
-            float heard = GetHeardLevel();
-            bool isHearing = heard >= minHeardLevel;
+            float footstepLevel = GetFootstepLevel();
+            float micLevel = GetMicLevel();
+            bool isScreaming = micLevel >= screamHeardLevel;
+            bool isHearing = footstepLevel >= minHeardLevel || micLevel >= minHeardLevel;
 
-            if (isHearing)
+            if (isScreaming)
             {
                 _lastHeardTime = Time.time;
                 if (Player != null) _lastSoundPos = Player.transform.position;
@@ -108,6 +111,17 @@ namespace PrisaControlada.Enemies
                 if (_state == BlindState.Wander)
                 {
                     _state = _warned ? BlindState.Chase : BlindState.Stalk;
+                }
+            }
+            else if (isHearing)
+            {
+                _lastHeardTime = Time.time;
+                if (Player != null) _lastSoundPos = Player.transform.position;
+                _loseTimer = 0f;
+
+                if (_state == BlindState.Wander)
+                {
+                    _state = BlindState.Chase;
                 }
             }
             else
@@ -213,7 +227,7 @@ namespace PrisaControlada.Enemies
             }
         }
 
-        private float GetHeardLevel()
+        private float GetFootstepLevel()
         {
             float level = 0f;
 
@@ -224,18 +238,19 @@ namespace PrisaControlada.Enemies
                 level = Mathf.Max(level, stamp.level * falloff);
             }
 
-            if (_mic != null && Player != null)
-            {
-                float micLevel = _mic.CurrentLevel;
-                if (micLevel > 0f)
-                {
-                    float dist = Vector3.Distance(transform.position, Player.transform.position);
-                    float falloff = Mathf.Clamp01(1f - dist / hearingRange);
-                    level = Mathf.Max(level, micLevel * falloff);
-                }
-            }
-
             return level;
+        }
+
+        private float GetMicLevel()
+        {
+            if (_mic == null || Player == null) return 0f;
+
+            float micLevel = _mic.CurrentLevel;
+            if (micLevel <= 0f) return 0f;
+
+            float dist = Vector3.Distance(transform.position, Player.transform.position);
+            float falloff = Mathf.Clamp01(1f - dist / hearingRange);
+            return micLevel * falloff;
         }
     }
 }

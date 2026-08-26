@@ -22,6 +22,8 @@ namespace PrisaControlada.Editor
         private const string PostFxProfilePath = "Assets/Prototype/UI/NoisePostFX.asset";
         private const string FurnitureFbxPath = "Assets/MyAssets/mueblexample.fbx";
         private const string CrosshairSpritePath = "Assets/VHSEffectURP/hud/Circle.png";
+        private const string FondoBalasSpritePath = "Assets/VHSEffectURP/hud/fondoBalas.png";
+        private const string BalasRevolverSpritePath = "Assets/VHSEffectURP/hud/balas revolver.png";
 
         private const int SlotCount = 2;
         private const int PreviewLayerA = 11;
@@ -208,6 +210,92 @@ namespace PrisaControlada.Editor
             EnsureInventoryHUDUI(player);
             EnsureMicNoiseMeterUI(player);
             EnsureCrosshairUI(player);
+            EnsureWeaponHUDUI(player);
+        }
+
+        private static void EnsureWeaponHUDUI(GameObject player)
+        {
+            Transform playerT = player.transform;
+
+            Transform canvasT = playerT.Find("WeaponHUD_Canvas");
+            if (canvasT == null)
+            {
+                RectTransform canvasRect = CreateRect("WeaponHUD_Canvas", playerT);
+                canvasT = canvasRect;
+                Canvas canvas = canvasRect.gameObject.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                canvas.sortingOrder = 250;
+
+                CanvasScaler scaler = canvasRect.gameObject.AddComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
+
+                canvasRect.gameObject.AddComponent<GraphicRaycaster>();
+            }
+
+            Image fondo = EnsureFullScreenImage(canvasT, "Fondo", EnsureSprite(FondoBalasSpritePath));
+            Image balas = EnsureFullScreenImage(canvasT, "Balas", EnsureSprite(BalasRevolverSpritePath));
+
+            Transform counterT = canvasT.Find("ReserveCounter");
+            if (counterT == null)
+            {
+                RectTransform counterRect = CreateRect("ReserveCounter", canvasT);
+                counterRect.anchorMin = new Vector2(0f, 1f);
+                counterRect.anchorMax = new Vector2(0f, 1f);
+                counterRect.pivot = new Vector2(0f, 1f);
+                counterRect.anchoredPosition = new Vector2(48f, -48f);
+                counterRect.sizeDelta = new Vector2(300f, 100f);
+
+                Text counter = counterRect.gameObject.AddComponent<Text>();
+                counter.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                counter.fontSize = 72;
+                counter.fontStyle = FontStyle.Bold;
+                counter.alignment = TextAnchor.MiddleLeft;
+                counter.color = Color.white;
+                counter.raycastTarget = false;
+                counter.text = "0";
+
+                counterT = counterRect;
+            }
+
+            WeaponHUD hud = player.GetComponent<WeaponHUD>();
+            if (hud == null) hud = player.AddComponent<WeaponHUD>();
+
+            SerializedObject so = new SerializedObject(hud);
+            so.FindProperty("weapon").objectReferenceValue = player.GetComponentInChildren<WeaponController>();
+            so.FindProperty("canvas").objectReferenceValue = canvasT.GetComponent<Canvas>();
+            so.FindProperty("counterText").objectReferenceValue = counterT.GetComponent<Text>();
+            so.ApplyModifiedProperties();
+
+            canvasT.gameObject.SetActive(false);
+        }
+
+        private static Image EnsureFullScreenImage(Transform parent, string name, Sprite sprite)
+        {
+            Transform t = parent.Find(name);
+            Image image;
+            if (t == null)
+            {
+                RectTransform rect = CreateRect(name, parent);
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+
+                image = rect.gameObject.AddComponent<Image>();
+                image.raycastTarget = false;
+                image.preserveAspect = true;
+            }
+            else
+            {
+                image = t.GetComponent<Image>();
+            }
+
+            if (sprite != null && image != null)
+                image.sprite = sprite;
+
+            return image;
         }
 
         private static void EnsureInventoryHUDUI(GameObject player)
@@ -488,6 +576,29 @@ namespace PrisaControlada.Editor
             EditorSceneManager.SaveScene(scene);
         }
 
+        [MenuItem("Tools/PrisaControlada/UI/Setup Weapon HUD")]
+        public static void AddWeaponHudToScene()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (string.IsNullOrEmpty(scene.path))
+            {
+                EditorUtility.DisplayDialog("Weapon HUD", "Save the scene first.", "OK");
+                return;
+            }
+
+            GameObject player = FindPlayer(scene);
+            if (player == null)
+            {
+                EditorUtility.DisplayDialog("Weapon HUD", "No Player found in the scene.", "OK");
+                return;
+            }
+
+            EnsureWeaponHUDUI(player);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+
         private static void EnsureCrosshairUI(GameObject player)
         {
             Transform playerT = player.transform;
@@ -552,17 +663,22 @@ namespace PrisaControlada.Editor
 
         private static Sprite EnsureCrosshairSprite()
         {
-            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(CrosshairSpritePath);
+            return EnsureSprite(CrosshairSpritePath);
+        }
+
+        private static Sprite EnsureSprite(string path)
+        {
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
             if (texture == null)
             {
-                Debug.LogWarning($"Crosshair texture not found at {CrosshairSpritePath}");
+                Debug.LogWarning($"Texture not found at {path}");
                 return null;
             }
 
-            string path = AssetDatabase.GetAssetPath(texture);
-            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            string assetPath = AssetDatabase.GetAssetPath(texture);
+            TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
             if (importer == null)
-                return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                return AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
 
             bool changed = false;
             if (importer.textureType != TextureImporterType.Sprite)
@@ -580,7 +696,7 @@ namespace PrisaControlada.Editor
             if (changed)
                 importer.SaveAndReimport();
 
-            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
         }
 
         private static RectTransform CreateRect(string name, Transform parent)

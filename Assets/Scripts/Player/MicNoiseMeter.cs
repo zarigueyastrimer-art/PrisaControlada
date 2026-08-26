@@ -175,6 +175,8 @@ namespace PrisaControlada.Player
                 _micClip = null;
                 _samples = null;
             }
+
+            _level = 0f;
         }
 
         private void UpdateLevel()

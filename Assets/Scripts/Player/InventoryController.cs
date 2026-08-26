@@ -128,6 +128,18 @@ namespace PrisaControlada.Player
                 return;
             }
 
+            ShotgunAmmoPickup shellBox = hit.collider.GetComponentInParent<ShotgunAmmoPickup>();
+            if (shellBox != null)
+            {
+                if (shellBox.TryCollect())
+                {
+                    Debug.Log($"<color=#77ff77>[ShotgunAmmoPickup] Caja de balas agarrada: +{shellBox.Amount} cartuchos. Item destruido.</color>");
+                    Destroy(shellBox.gameObject);
+                }
+                InventoryChanged?.Invoke();
+                return;
+            }
+
             if (_heldItem != null) return;
 
             PickupItem item = hit.collider.GetComponentInParent<PickupItem>();

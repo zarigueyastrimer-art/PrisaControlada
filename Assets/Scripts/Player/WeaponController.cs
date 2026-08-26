@@ -87,6 +87,8 @@ namespace PrisaControlada.Player
         [SerializeField] private bool hipFireFromScreenCenter = true;
         [SerializeField] private Vector3 hipShotDirectionOffset = Vector3.zero;
         [SerializeField] private Vector3 hipShotOriginOffset = Vector3.zero;
+        [Tooltip("Dispersion aleatoria del tiro de cadera (grados). Mas alto = menos preciso.")]
+        [SerializeField, Range(0f, 10f)] private float hipFireSpread = 2f;
 
         [Header("Debug")]
         [SerializeField] private bool debugShowLineTrace = true;
@@ -97,6 +99,7 @@ namespace PrisaControlada.Player
         private static readonly int SpeedParam = Animator.StringToHash("Speed");
         private static readonly int ShootParam = Animator.StringToHash("Shoot");
         private static readonly int ReloadingParam = Animator.StringToHash("Reloading");
+        private static readonly int GetParam = Animator.StringToHash("Get");
 
         private InputAction _attackAction;
         private InputAction _aimAction;
@@ -204,6 +207,8 @@ namespace PrisaControlada.Player
 
         private void Start()
         {
+            TryAutoLoadControllers();
+
             _ammo = maxAmmo;
             if (weaponRoot != null)
             {
@@ -258,6 +263,30 @@ namespace PrisaControlada.Player
             UpdatePendingShot();
         }
 
+        private void TryAutoLoadControllers()
+        {
+            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController == null)
+            {
+                string goName = weaponArmAnimator.gameObject.name;
+                RuntimeAnimatorController ctrl = Resources.Load<RuntimeAnimatorController>(goName + "Animator");
+                if (ctrl != null)
+                {
+                    weaponArmAnimator.runtimeAnimatorController = ctrl;
+                    Debug.Log($"[Weapon] Auto-loaded controller for {goName}: {ctrl.name}");
+                }
+            }
+            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController == null)
+            {
+                string goName = weaponAnimator.gameObject.name;
+                RuntimeAnimatorController ctrl = Resources.Load<RuntimeAnimatorController>(goName + "Animator");
+                if (ctrl != null)
+                {
+                    weaponAnimator.runtimeAnimatorController = ctrl;
+                    Debug.Log($"[Weapon] Auto-loaded controller for {goName}: {ctrl.name}");
+                }
+            }
+        }
+
         private void ToggleEquip()
         {
             if (_isReloading) return;
@@ -269,7 +298,6 @@ namespace PrisaControlada.Player
         {
             _equipped = value;
             if (!value) _pendingShotTime = -1f;
-            Debug.Log($"<color=#cc99ff>[Weapon] Equipado={(value ? "SI" : "NO")} ammo={_ammo}/{maxAmmo} aimOnly={aimOnlyMode}</color>");
 
             if (weaponRoot != null) weaponRoot.gameObject.SetActive(value);
             _isAiming = false;
@@ -277,7 +305,13 @@ namespace PrisaControlada.Player
 
             if (value)
             {
-                if (aimOnlyMode)
+                bool hasGetParam = HasParam(weaponArmAnimator, "Get") || HasParam(weaponAnimator, "Get");
+                if (hasGetParam)
+                {
+                    PlayClip(weaponArmAnimator, "Get");
+                    PlayClip(weaponAnimator, "Get");
+                }
+                else if (aimOnlyMode)
                 {
                     PlayClip(weaponAnimator, "IdleAim");
                     PlayClip(weaponArmAnimator, "IdleAim");
@@ -295,28 +329,36 @@ namespace PrisaControlada.Player
             }
         }
 
+        private static bool HasParam(Animator anim, string paramName)
+        {
+            if (anim == null || anim.runtimeAnimatorController == null) return false;
+            foreach (AnimatorControllerParameter p in anim.parameters)
+                if (p.name == paramName) return true;
+            return false;
+        }
+
         private void SetBoolBoth(int param, bool value)
         {
-            if (weaponAnimator != null) weaponAnimator.SetBool(param, value);
-            if (weaponArmAnimator != null) weaponArmAnimator.SetBool(param, value);
+            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.SetBool(param, value);
+            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.SetBool(param, value);
         }
 
         private void SetFloatBoth(int param, float value, float dampTime, float deltaTime)
         {
-            if (weaponAnimator != null) weaponAnimator.SetFloat(param, value, dampTime, deltaTime);
-            if (weaponArmAnimator != null) weaponArmAnimator.SetFloat(param, value, dampTime, deltaTime);
+            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.SetFloat(param, value, dampTime, deltaTime);
+            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.SetFloat(param, value, dampTime, deltaTime);
         }
 
         private void SetTriggerBoth(int param)
         {
-            if (weaponAnimator != null) weaponAnimator.SetTrigger(param);
-            if (weaponArmAnimator != null) weaponArmAnimator.SetTrigger(param);
+            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.SetTrigger(param);
+            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.SetTrigger(param);
         }
 
         private void ResetTriggerBoth(int param)
         {
-            if (weaponAnimator != null) weaponAnimator.ResetTrigger(param);
-            if (weaponArmAnimator != null) weaponArmAnimator.ResetTrigger(param);
+            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.ResetTrigger(param);
+            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.ResetTrigger(param);
         }
 
         private static void PlayClip(Animator anim, string state, float normalizedTime = 0f, float speed = 1f)
@@ -442,6 +484,15 @@ namespace PrisaControlada.Player
                     rayOrigin += weaponRot * hipShotOriginOffset;
                 if (hipShotDirectionOffset != Vector3.zero)
                     rayDir = weaponRot * Quaternion.Euler(hipShotDirectionOffset) * Quaternion.Inverse(weaponRot) * rayDir;
+
+                // Disparo de cadera impreciso: rotacion aleatoria alrededor de la
+                // direccion apuntada, asi conviene apuntar (aim no tiene spread).
+                if (hipFireSpread > 0f)
+                {
+                    float angle = Random.Range(0f, hipFireSpread);
+                    Vector3 axis = Random.onUnitSphere;
+                    rayDir = Quaternion.AngleAxis(angle, axis) * rayDir;
+                }
             }
             else
             {
@@ -655,7 +706,8 @@ namespace PrisaControlada.Player
             // El arma baja SOLO mientras la recarga logica este activa. Cuando se
             // completa (ammo recargado) vuelve al reposo/apuntado, aunque la animacion
             // del brazo siga unos frames mas.
-            bool atReloadPos = _isReloading && Time.time >= _reloadStartTime + reloadPositionDelay;
+            bool hasReloadOffset = reloadPositionOffset != Vector3.zero || reloadRotationOffset != Vector3.zero;
+            bool atReloadPos = _isReloading && hasReloadOffset && Time.time >= _reloadStartTime + reloadPositionDelay;
             if (atReloadPos != _wasAtReloadPos)
             {
                 _inTransition = true;

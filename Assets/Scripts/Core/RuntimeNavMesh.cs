@@ -56,6 +56,7 @@ namespace PrisaControlada.Core
             {
                 if (r == null || !r.enabled || !r.gameObject.activeInHierarchy) continue;
                 if (r.GetComponentInParent<NavMeshAgent>() != null) continue;
+                if (!r.gameObject.isStatic) continue;
 
                 Transform t = r.transform;
                 hash = hash * 31 + t.position.GetHashCode();

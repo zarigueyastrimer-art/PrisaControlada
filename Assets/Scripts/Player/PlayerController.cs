@@ -73,6 +73,7 @@ namespace PrisaControlada.Player
         public bool IsCrouching => _isCrouching;
         public bool IsGrounded => _controller.isGrounded;
         public float RunSpeed => runSpeed;
+        public float WalkSpeed => walkSpeed;
         public Vector3 MoveVector => _moveDirection;
         public InputActionAsset InputActions => inputActions;
         public bool ControlEnabled => _controlEnabled;
