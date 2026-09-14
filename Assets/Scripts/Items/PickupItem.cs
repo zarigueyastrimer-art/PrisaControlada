@@ -11,16 +11,22 @@ namespace PrisaControlada.Items
         [SerializeField] private LayerMask wallMask = ~0;
         [SerializeField] private float wallDropOffset = 0.35f;
 
+        [Header("Safety")]
+        [SerializeField] private float fallLimitY = -10f;
+
         private Rigidbody _rb;
         private Transform _holder;
         private Vector3 _holdOffset;
         private Vector3 _prevPlayerPos;
         private Transform _playerRoot;
         private float _objectRadius;
+        private Transform _playerTransform;
 
         public bool IsHeld { get; private set; }
 
         public virtual bool IsBusy => false;
+
+        public virtual Vector3 PreviewScale => Vector3.one;
 
         private void Awake()
         {
@@ -71,6 +77,22 @@ namespace PrisaControlada.Items
 
         private void LateUpdate()
         {
+            if (!IsHeld && transform.position.y < fallLimitY)
+            {
+                if (_playerTransform == null)
+                {
+                    var player = GameObject.Find("Player");
+                    if (player != null) _playerTransform = player.transform;
+                }
+
+                if (_playerTransform != null)
+                {
+                    _rb.linearVelocity = Vector3.zero;
+                    _rb.angularVelocity = Vector3.zero;
+                    transform.position = _playerTransform.position + Vector3.up * 0.5f;
+                }
+            }
+
             if (!IsHeld || _holder == null) return;
 
             Vector3 playerPos = _playerRoot.position;

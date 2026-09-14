@@ -69,6 +69,12 @@ namespace PrisaControlada.Player
             if (hit.collider.GetComponentInParent<ShotgunAmmoPickup>() != null)
                 return true;
 
+            if (hit.collider.GetComponentInParent<GlockAmmoPickup>() != null)
+                return true;
+
+            if (hit.collider.GetComponentInParent<GlockMagazinePickup>() != null)
+                return true;
+
             return hit.collider.GetComponentInParent<PickupItem>() != null;
         }
 

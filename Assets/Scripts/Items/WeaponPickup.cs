@@ -28,6 +28,7 @@ namespace PrisaControlada.Items
                 Component w = ResolveWeapon();
                 if (w is WeaponController wc) return wc.IsBusy;
                 if (w is ShotgunToggle st) return st.IsBusy;
+                if (w is GlockToggle gt) return gt.IsBusy;
                 return false;
             }
         }
@@ -66,6 +67,7 @@ namespace PrisaControlada.Items
             Component w = ResolveWeapon();
             if (w is WeaponController wc) { wc.Equip(); UnequipOther(wc); }
             else if (w is ShotgunToggle st) { st.Equip(); UnequipOther(st); }
+            else if (w is GlockToggle gt) { gt.Equip(); UnequipOther(gt); }
         }
 
         private void UnequipWeapon()
@@ -73,21 +75,27 @@ namespace PrisaControlada.Items
             Component w = ResolveWeapon();
             if (w is WeaponController wc) wc.Unequip();
             else if (w is ShotgunToggle st) st.Unequip();
+            else if (w is GlockToggle gt) gt.Unequip();
         }
 
         // Exclusion mutua: al equipar un arma, se desequipa la otra para que no se
-        // superpongan (el revolver se controla aparte de la escopeta).
+        // superpongan (el revolver se controla aparte de la escopeta y la glock).
         private void UnequipOther(Component equipped)
         {
-            if (equipped is ShotgunToggle)
+            if (equipped is ShotgunToggle || equipped is GlockToggle)
             {
                 foreach (var wc in FindObjectsOfType<WeaponController>())
                     wc.Unequip();
             }
-            else if (equipped is WeaponController)
+            if (equipped is WeaponController || equipped is GlockToggle)
             {
                 ShotgunToggle st = FindObjectOfType<ShotgunToggle>();
                 if (st != null) st.Unequip();
+            }
+            if (equipped is WeaponController || equipped is ShotgunToggle)
+            {
+                GlockToggle gt = FindObjectOfType<GlockToggle>();
+                if (gt != null) gt.Unequip();
             }
         }
 
@@ -96,6 +104,7 @@ namespace PrisaControlada.Items
             Component w = ResolveWeapon();
             if (w is WeaponController wc) return wc.ViewCamera;
             if (w is ShotgunToggle st) return st.ViewCamera;
+            if (w is GlockToggle gt) return gt.ViewCamera;
             return null;
         }
 

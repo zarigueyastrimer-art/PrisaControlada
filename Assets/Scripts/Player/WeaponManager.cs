@@ -56,6 +56,9 @@ namespace PrisaControlada.Player
             if (_currentIndex >= 0 && _currentIndex < weapons.Length)
                 weapons[_currentIndex]?.Unequip();
 
+            var gt = FindObjectOfType<GlockToggle>();
+            if (gt != null) gt.Unequip();
+
             _currentIndex = newIndex;
             weapons[_currentIndex]?.Equip();
 

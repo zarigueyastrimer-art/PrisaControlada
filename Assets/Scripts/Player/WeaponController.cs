@@ -515,7 +515,7 @@ namespace PrisaControlada.Player
             {
                 var enemy = hit.collider.GetComponentInParent<EnemyBase>();
                 if (enemy != null)
-                    enemy.TakeDamage(Mathf.RoundToInt(damage));
+                    enemy.TakeDamage(Mathf.RoundToInt(damage), ray.direction, hit.collider, hit.point);
                 if (weaponVFX != null)
                 {
                     weaponVFX.PlayImpact(hit.point, hit.normal);

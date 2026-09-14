@@ -161,6 +161,7 @@ namespace PrisaControlada.Player
             slot.visual.transform.SetParent(slot.visualRoot, false);
             slot.visual.transform.localPosition = Vector3.zero;
             slot.visual.transform.localRotation = Quaternion.identity;
+            slot.visual.transform.localScale = item.PreviewScale;
 
             // Presentacion: el VisualRoot es el punto en frente de la camara donde
             // "vive" el objeto. Rotarlo es equivalente a orbitar la camara alrededor

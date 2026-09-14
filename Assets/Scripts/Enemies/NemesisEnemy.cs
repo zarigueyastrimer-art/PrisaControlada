@@ -39,7 +39,7 @@ namespace PrisaControlada.Enemies
             attackCooldown = 0.5f;
         }
 
-        public override void TakeDamage(int amount)
+        public override void TakeDamage(int amount, Vector3 hitDirection = default, Collider hitBone = null, Vector3 hitPoint = default)
         {
         }
 

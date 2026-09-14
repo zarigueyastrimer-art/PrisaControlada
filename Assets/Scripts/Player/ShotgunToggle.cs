@@ -43,14 +43,19 @@ namespace PrisaControlada.Player
         [SerializeField] private float range = 100f;
         [SerializeField] private float fireRate = 1.2f;
         [SerializeField] private LayerMask shootMask = ~0;
-        [SerializeField] private WeaponVFX weaponVFX;
+        [SerializeField]         private WeaponVFX weaponVFX;
         [SerializeField] private bool showLineTrace = true;
+        private PlayerCamera _punchCamera;
 
         [Header("Disparo - Aim Trace (estilo revolver)")]
         [SerializeField] private bool aimUseMuzzleForward = true;
         [SerializeField] private Vector3 aimShotOriginOffset;
         [SerializeField] private Vector3 aimShotDirectionOffset;
         [SerializeField] private Color lineTraceColor = new Color(1f, 0.2f, 0.2f, 1f);
+
+        [Header("Recoil (camara) - escopeta: MUY potente (1 sola bala)")]
+        [SerializeField] private float recoilAmount = 10f;
+        [SerializeField] private float recoilRandomAmount = 4f;
 
         [Header("Municion (escopeta: 1 cartucho en el canion)")]
         [SerializeField] private int startReserveShells = 4;
@@ -89,6 +94,7 @@ namespace PrisaControlada.Player
                 _reloadAction = inputActions.FindAction("Reload");
                 _aimAction = inputActions.FindAction("Aim");
             }
+            _punchCamera = viewCamera != null ? viewCamera.GetComponent<PlayerCamera>() : null;
         }
 
         private void OnEnable()
@@ -140,7 +146,12 @@ namespace PrisaControlada.Player
                 SetReloading(gunAnimator, false);
                 SetAiming(armAnimator, false);
                 SetAiming(gunAnimator, false);
-                if (_equipped) PlayAnim("Get");
+                if (_equipped)
+                {
+                    var gt = FindObjectOfType<GlockToggle>();
+                    if (gt != null) gt.Unequip();
+                    PlayAnim("Get");
+                }
                 return;
             }
 
@@ -453,7 +464,7 @@ namespace PrisaControlada.Player
                 {
                     EnemyBase enemy = hit.collider.GetComponentInParent<EnemyBase>();
                     if (enemy != null)
-                        enemy.TakeDamage(Mathf.RoundToInt(damagePerPellet));
+                        enemy.TakeDamage(Mathf.RoundToInt(damagePerPellet), ray.direction, hit.collider, hit.point);
                     if (weaponVFX != null)
                     {
                         weaponVFX.PlayImpact(hit.point, hit.normal);
@@ -469,6 +480,14 @@ namespace PrisaControlada.Player
                     if (weaponVFX != null) weaponVFX.DrawLineTrace(rayOrigin, endPoint, lineTraceColor, 1f);
                     else Debug.DrawLine(rayOrigin, endPoint, lineTraceColor, 0.1f);
                 }
+            }
+
+            // Recoil de camara (escopeta: muy potente, 1 bala).
+            if (_punchCamera != null)
+            {
+                float up = recoilAmount + Random.Range(0f, recoilRandomAmount);
+                float side = Random.Range(-recoilRandomAmount, recoilRandomAmount) * 0.5f;
+                _punchCamera.AddRecoil(up, side);
             }
         }
 

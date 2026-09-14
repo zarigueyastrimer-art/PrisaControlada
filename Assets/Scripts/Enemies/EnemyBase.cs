@@ -74,7 +74,7 @@ namespace PrisaControlada.Enemies
 
         protected virtual void OnDestroy() { }
 
-        public virtual void TakeDamage(int amount)
+        public virtual void TakeDamage(int amount, Vector3 hitDirection = default, Collider hitBone = null, Vector3 hitPoint = default)
         {
             if (IsDead || amount <= 0) return;
 

@@ -140,6 +140,30 @@ namespace PrisaControlada.Player
                 return;
             }
 
+            GlockAmmoPickup glockBox = hit.collider.GetComponentInParent<GlockAmmoPickup>();
+            if (glockBox != null)
+            {
+                if (glockBox.TryCollect())
+                {
+                    Debug.Log($"<color=#77ff77>[GlockAmmoPickup] Caja de balas de glock agarrada: +{glockBox.Amount} balas. Item destruido.</color>");
+                    Destroy(glockBox.gameObject);
+                }
+                InventoryChanged?.Invoke();
+                return;
+            }
+
+            GlockMagazinePickup glockMag = hit.collider.GetComponentInParent<GlockMagazinePickup>();
+            if (glockMag != null)
+            {
+                if (glockMag.TryCollect())
+                {
+                    Debug.Log($"<color=#77ff77>[GlockMagazinePickup] Cargador de glock agarrado: +{glockMag.Amount} balas a la reserva. Item destruido.</color>");
+                    Destroy(glockMag.gameObject);
+                }
+                InventoryChanged?.Invoke();
+                return;
+            }
+
             if (_heldItem != null) return;
 
             PickupItem item = hit.collider.GetComponentInParent<PickupItem>();

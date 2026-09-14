@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1803930941877540442}
   - component: {fileID: 8512386242675846729}
   - component: {fileID: 1102743620926485309}
-  - component: {fileID: 218386778501011819}
+  - component: {fileID: 6115592975977409377}
   m_Layer: 0
   m_Name: ShotgunPickup
   m_TagString: Untagged
@@ -82,8 +82,8 @@ MonoBehaviour:
   wallDropOffset: 0.35
   weapon: {fileID: 0}
   weaponKind: 0
---- !u!64 &218386778501011819
-MeshCollider:
+--- !u!65 &6115592975977409377
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -100,10 +100,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  serializedVersion: 3
+  m_Size: {x: 0.07930994, y: 0.2877814, z: 0.7546611}
+  m_Center: {x: -0.0016951561, y: -0.04356523, z: -0.03891301}
 --- !u!1001 &27911470404241266
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -205,7 +204,8 @@ PrefabInstance:
       value: ShotgunMesh
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3103406077920639209, guid: c5a5bb45404f35a4c8fc079d93393e17, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c5a5bb45404f35a4c8fc079d93393e17, type: 3}
