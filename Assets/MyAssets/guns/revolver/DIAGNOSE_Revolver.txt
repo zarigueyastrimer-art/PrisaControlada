@@ -1,0 +1,328 @@
+== CLIPS FBX ==
+  Armature|getPistol  len=2,80s  curves=260
+  Armature|idelAimgun  len=2,80s  curves=260
+  Armature|idelPistol  len=2,80s  curves=260
+  Armature|NoAimToAimGun  len=1,04s  curves=260
+  Armature|ReloadGun1  len=2,36s  curves=260
+  Armature|ShootAimArm  len=1,92s  curves=260
+  Armature|ShootPistol  len=1,16s  curves=260
+  Armature|walkPistol  len=2,80s  curves=260
+  root|reloadArm1  len=5,96s  curves=310
+
+== TAKES DEL FBX SEGUN EL IMPORTER ==
+  defaultClipAnimations (9):
+    Armature|getPistol
+    Armature|idelAimgun
+    Armature|idelPistol
+    Armature|NoAimToAimGun
+    Armature|ReloadGun1
+    Armature|ShootAimArm
+    Armature|ShootPistol
+    Armature|walkPistol
+    root|reloadArm1
+  clipAnimations configurados (9):
+    Armature|getPistol
+    Armature|idelAimgun
+    Armature|idelPistol
+    Armature|NoAimToAimGun
+    Armature|ReloadGun1
+    Armature|ShootAimArm
+    Armature|ShootPistol
+    Armature|walkPistol
+    root|reloadArm1
+
+== BINDINGS (rutas unicas por clip) ==
+  get (Armature|getPistol): 26 rutas unicas
+    root/Armature
+    root/Armature/root
+    root/Armature/root/hammer
+    root/Armature/root/trigger
+    root/Armature/root/release
+    root/Armature/root/muzzle
+    root/Armature/root/crane
+    root/Armature/root/crane/cylinder
+    root/Armature/root/crane/cylinder/ejector_rod
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_8
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_8
+  idle (Armature|idelAimgun): 26 rutas unicas
+    root/Armature
+    root/Armature/root
+    root/Armature/root/hammer
+    root/Armature/root/trigger
+    root/Armature/root/release
+    root/Armature/root/muzzle
+    root/Armature/root/crane
+    root/Armature/root/crane/cylinder
+    root/Armature/root/crane/cylinder/ejector_rod
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_8
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_8
+  walk (Armature|walkPistol): 26 rutas unicas
+    root/Armature
+    root/Armature/root
+    root/Armature/root/hammer
+    root/Armature/root/trigger
+    root/Armature/root/release
+    root/Armature/root/muzzle
+    root/Armature/root/crane
+    root/Armature/root/crane/cylinder
+    root/Armature/root/crane/cylinder/ejector_rod
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_8
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_8
+  shoot (Armature|ShootAimArm): 26 rutas unicas
+    root/Armature
+    root/Armature/root
+    root/Armature/root/hammer
+    root/Armature/root/trigger
+    root/Armature/root/release
+    root/Armature/root/muzzle
+    root/Armature/root/crane
+    root/Armature/root/crane/cylinder
+    root/Armature/root/crane/cylinder/ejector_rod
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_8
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_8
+  reload (Armature|ReloadGun1): 26 rutas unicas
+    root/Armature
+    root/Armature/root
+    root/Armature/root/hammer
+    root/Armature/root/trigger
+    root/Armature/root/release
+    root/Armature/root/muzzle
+    root/Armature/root/crane
+    root/Armature/root/crane/cylinder
+    root/Armature/root/crane/cylinder/ejector_rod
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_8
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_1
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_2
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_3
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_4
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_5
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_6
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_7
+    root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_8
+
+== BINDINGS CLIP DEL BRAZO (root|reloadArm1 y RevolverArmReload) ==
+  root|reloadArm1 (5,96s): 31 rutas unicas, 310 curvas
+    root
+    root/chest
+    root/chest/arm.R
+    root/chest/arm.R/elbow.R
+    root/chest/arm.R/elbow.R/forearm.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R/pink3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R/pink3.R/pink3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R/ring3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R/ring3.R/ring3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R/middle3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R/middle3.R/middle3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R/point3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R/point3.R/point3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R/thumb3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R/thumb3.R/thumb3.R_end
+    root/handcontrol.R
+    root/handcontrol.R/handcontrol.R_end
+    root/armpole.R
+    root/armpole.R/armpole.R_end
+  RevolverArmReload (5,96s): 31 rutas unicas, 310 curvas
+    root
+    root/chest
+    root/chest/arm.R
+    root/chest/arm.R/elbow.R
+    root/chest/arm.R/elbow.R/forearm.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R/pink3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R/pink3.R/pink3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R/ring3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R/ring3.R/ring3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R/middle3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R/middle3.R/middle3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R/point3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R/point3.R/point3.R_end
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R/thumb3.R
+    root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R/thumb3.R/thumb3.R_end
+    root/handcontrol.R
+    root/handcontrol.R/handcontrol.R_end
+    root/armpole.R
+    root/armpole.R/armpole.R_end
+
+== CONTROLLER ==
+  RevolverAnimator - 2 capas
+  CAPA [0] 'Base Layer' weight=0
+    Empty: motion=(NULL)
+    Get: motion=Armature|getPistol speed=1,00
+    Unequip: motion=Armature|getPistol speed=-1,00
+    Raised: motion=Raised speed=1,00
+    Raised 0: motion=Raised speed=1,00
+    LoweredIdle: motion=Armature|idelPistol speed=1,00
+    LoweredWalk: motion=Armature|walkPistol speed=1,00
+    LoweredRun: motion=Armature|walkPistol speed=1,60
+    RaiseToAim: motion=Armature|NoAimToAimGun speed=1,00
+    LowerFromAim: motion=Armature|NoAimToAimGun speed=-1,00
+    Shoot: motion=Armature|ShootPistol speed=1,00
+    ShootAim: motion=Armature|ShootAimArm speed=1,00
+    Reload: motion=Armature|ReloadGun1 speed=1,00
+  CAPA [1] 'Arm' weight=0
+    Held: motion=(NULL)
+    Reload: motion=RevolverArmReload speed=2,53
+  motions NULL (sin contar Empty): 1
+
+== ARMA EN ESCENA ==
+  RevolverWeapon pos=(0.00, -0.10, 0.36) rot=(0.00, 0.00, 6.00)
+  Animator en el root del arma: SI
+    controller asignado: RevolverAnimator
+    capas del controller asignado: 2
+  bindings que resuelven desde el root del arma (get): 260/260
+  bindings que resuelven desde el root del arma (brazo): 310/310
+
+  SkinnedMeshRenderers del arma:
+    arm: 30 huesos
+      root/chest/chest
+      root/chest/arm.R/arm.R
+      root/chest/arm.R/elbow.R/elbow.R
+      root/chest/arm.R/elbow.R/forearm.R/forearm.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/hand.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/palm.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink1.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R/pink2.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R/pink3.R/pink3.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/pink1.R/pink2.R/pink3.R/pink3.R_end/pink3.R_end
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring1.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R/ring2.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R/ring3.R/ring3.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/palm.R/ring1.R/ring2.R/ring3.R/ring3.R_end/ring3.R_end
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle1.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R/middle2.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R/middle3.R/middle3.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/middle1.R/middle2.R/middle3.R/middle3.R_end/middle3.R_end
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point1.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R/point2.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R/point3.R/point3.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/point1.R/point2.R/point3.R/point3.R_end/point3.R_end
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb1.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R/thumb2.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R/thumb3.R/thumb3.R
+      root/chest/arm.R/elbow.R/forearm.R/hand.R/thumb1.R/thumb2.R/thumb3.R/thumb3.R_end/thumb3.R_end
+      root/handcontrol.R/handcontrol.R
+      root/handcontrol.R/handcontrol.R_end/handcontrol.R_end
+      root/armpole.R/armpole.R
+      root/armpole.R/armpole.R_end/armpole.R_end
+    Magnum357_Mesh: 25 huesos
+      root/Armature/root/root
+      root/Armature/root/hammer/hammer
+      root/Armature/root/trigger/trigger
+      root/Armature/root/release/release
+      root/Armature/root/muzzle/muzzle
+      root/Armature/root/crane/crane
+      root/Armature/root/crane/cylinder/cylinder
+      root/Armature/root/crane/cylinder/ejector_rod/ejector_rod
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/ammo_loaded
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_1/bullet_1
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_2/bullet_2
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_3/bullet_3
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_4/bullet_4
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_5/bullet_5
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_6/bullet_6
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_7/bullet_7
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bullet_8/bullet_8
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_1/bulletcase_1
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_2/bulletcase_2
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_3/bulletcase_3
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_4/bulletcase_4
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_5/bulletcase_5
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_6/bulletcase_6
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_7/bulletcase_7
+      root/Armature/root/crane/cylinder/ejector_rod/ammo_loaded/bulletcase_8/bulletcase_8
+
+  -> Regenerando controller (referencias rotas)...
+     controller regenerado. Faltantes: walkAim, run, runAim
+
+== SE APLICARON REPARACIONES - proba de nuevo ==

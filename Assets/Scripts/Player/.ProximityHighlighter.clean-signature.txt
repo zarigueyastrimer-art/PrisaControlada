@@ -1,0 +1,6 @@
+ProximityHighlighter.cs clean-signature
+SHA256 = BF2A73FDB5546A5B3363427BA260896F1B16259EFBECDE1E735627B72A3618B8
+non-ASCII = 0
+braces = 35/35
+fixed = Collidekar->Collide, continueeri->continue
+verified = 2026-09-22 15:52:10

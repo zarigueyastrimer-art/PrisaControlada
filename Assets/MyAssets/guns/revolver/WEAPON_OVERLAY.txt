@@ -1,0 +1,8 @@
+Layer Weapon = 8
+RevolverWeapon (y descendencia) -> layer Weapon (8). Objetos: 89
+WeaponCamera (Overlay) creada bajo la camara base. Culling de base sin layer 8. Stack de base: anadida
+WeaponController.weaponCamera -> WeaponCamera
+Escena guardada.
+
+LISTO. Proba Play y gira la camara: el arma debe quedar nitida (sin motion blur) por encima de la escena desenfocada.
+Si el arma se ve algo 'lavada' (sin tonemapping), avisame y lo ajustamos.

@@ -1,0 +1,40 @@
+  importador OK: Assets/MyAssets/guns/revolver/gun.fbx
+  importador OK: Assets/MyAssets/guns/revolver/arms/idelAimArm.fbx
+  importador OK: Assets/MyAssets/guns/revolver/arms/idelArm.fbx
+  importador OK: Assets/MyAssets/guns/revolver/arms/ReloadArm.fbx
+  importador OK: Assets/MyAssets/guns/revolver/arms/shootAimArm.fbx
+  importador OK: Assets/MyAssets/guns/revolver/arms/shootArm.fbx
+  importador OK: Assets/MyAssets/guns/revolver/arms/walkArm.fbx
+== CLIPS GUN ==
+  get <- Armature|getPistol (2,80s) -> Gun_Get.anim (raiz limpiada)
+  idleAim <- Armature|idelAimgun (2,80s) -> Gun_IdleAim.anim (raiz limpiada)
+  idle <- Armature|idelPistol (2,80s) -> Gun_Idle.anim (raiz limpiada)
+  reload <- Armature|ReloadGun1 (2,36s) -> Gun_Reload.anim (raiz limpiada)
+  shootAim <- Armature|ShootAimArm (1,92s) -> Gun_ShootAim.anim (raiz limpiada)
+  shoot <- Armature|ShootPistol (1,16s) -> Gun_Shoot.anim (raiz limpiada)
+  walk <- Armature|walkPistol (2,80s) -> Gun_Walk.anim (raiz limpiada)
+== CLIPS ARM ==
+  idleAim <- root|idelAimArms (2,16s) -> Arm_IdleAim.anim
+  idle <- root|idelArm (5,96s) -> Arm_Idle.anim
+  reload <- root|reloadArm1 (5,96s) -> Arm_Reload.anim
+  shootAim <- root|shootAimArms (1,96s) -> Arm_ShootAim.anim
+  shoot <- root|shootArm (1,60s) -> Arm_Shoot.anim
+  walk <- root|WalkArms (2,36s) -> Arm_Walk.anim
+== CONTROLLERS ==
+  gun controller OK: Assets/Animators/RevolverGunAnimator.controller (1 capa)
+  arm controller OK: Assets/Animators/RevolverArmAnimator.controller (1 capa)
+
+== SOCKET GUN ==
+  hueso mano: Player/PlayerCamera/RevolverWeapon/RevolverArm/root/chest/arm.R/elbow.R/forearm.R/hand.R
+  RevolverGun.localPosition=(0.00, 0.00, 0.00) localRotation=(270.00, 0.00, 0.00) localScale=(0.01, 0.01, 0.01)
+
+== CHEQUEO DE BINDINGS ==
+  gun [idle] resuelven desde el root: 240/240
+  gun [reload] resuelven desde el root: 240/240
+  arm [idle] resuelven desde el root: 310/310
+  arm [reload] resuelven desde el root: 310/310
+
+Arma creada: RevolverWeapon (RevolverArm + RevolverGun socket en el hueso de la mano) bajo la camara.
+Si el arma no queda en la mano, ajusta localPosition/localRotation de RevolverGun (hijo de hand.R).
+
+== LISTO. Proba Play -> 1. Si el gun no queda en la mano, ajusta localPosition/localRotation de RevolverGun (hijo de hand.R). ==

@@ -1,0 +1,817 @@
+=== Assets en Assets/MyAssets/guns/revolver/revolver.fbx (198) ===
+CLIP: __preview__Armature|getPistol | len=2,80s | loop=False
+CLIP: __preview__Armature|idelAimgun | len=2,80s | loop=False
+CLIP: __preview__Armature|idelPistol | len=2,80s | loop=False
+CLIP: __preview__Armature|NoAimToAimGun | len=1,04s | loop=False
+CLIP: __preview__Armature|ReloadGun1 | len=2,36s | loop=False
+CLIP: __preview__Armature|ShootAimArm | len=1,92s | loop=False
+CLIP: __preview__Armature|ShootPistol | len=1,16s | loop=False
+CLIP: __preview__Armature|walkPistol | len=2,80s | loop=False
+CLIP: __preview__root|reloadArm1 | len=5,96s | loop=False
+GO: revolver
+  - arm
+  - Magnum357_Mesh
+  - root
+    - Armature
+      - root
+        - crane
+          - cylinder
+            - ejector_rod
+              - ammo_loaded
+                - bullet_1
+                  - bullet_1_end
+                - bullet_2
+                  - bullet_2_end
+                - bullet_3
+                  - bullet_3_end
+                - bullet_4
+                  - bullet_4_end
+                - bullet_5
+                  - bullet_5_end
+                - bullet_6
+                  - bullet_6_end
+                - bullet_7
+                  - bullet_7_end
+                - bullet_8
+                  - bullet_8_end
+                - bulletcase_1
+                  - bulletcase_1_end
+                - bulletcase_2
+                  - bulletcase_2_end
+                - bulletcase_3
+                  - bulletcase_3_end
+                - bulletcase_4
+                  - bulletcase_4_end
+                - bulletcase_5
+                  - bulletcase_5_end
+                - bulletcase_6
+                  - bulletcase_6_end
+                - bulletcase_7
+                  - bulletcase_7_end
+                - bulletcase_8
+                  - bulletcase_8_end
+        - hammer
+          - hammer_end
+        - muzzle
+          - muzzle_end
+        - release
+          - release_end
+        - trigger
+          - trigger_end
+    - armpole.R
+      - armpole.R_end
+        - armpole.R_end_end
+    - chest
+      - arm.R
+        - elbow.R
+          - forearm.R
+            - hand.R
+              - middle1.R
+                - middle2.R
+                  - middle3.R
+                    - middle3.R_end
+                      - middle3.R_end_end
+              - palm.R
+                - pink1.R
+                  - pink2.R
+                    - pink3.R
+                      - pink3.R_end
+                        - pink3.R_end_end
+                - ring1.R
+                  - ring2.R
+                    - ring3.R
+                      - ring3.R_end
+                        - ring3.R_end_end
+              - point1.R
+                - point2.R
+                  - point3.R
+                    - point3.R_end
+                      - point3.R_end_end
+              - thumb1.R
+                - thumb2.R
+                  - thumb3.R
+                    - thumb3.R_end
+                      - thumb3.R_end_end
+    - handcontrol.R
+      - handcontrol.R_end
+        - handcontrol.R_end_end
+GO: arm
+GO: Magnum357_Mesh
+GO: root
+  - Armature
+    - root
+      - crane
+        - cylinder
+          - ejector_rod
+            - ammo_loaded
+              - bullet_1
+                - bullet_1_end
+              - bullet_2
+                - bullet_2_end
+              - bullet_3
+                - bullet_3_end
+              - bullet_4
+                - bullet_4_end
+              - bullet_5
+                - bullet_5_end
+              - bullet_6
+                - bullet_6_end
+              - bullet_7
+                - bullet_7_end
+              - bullet_8
+                - bullet_8_end
+              - bulletcase_1
+                - bulletcase_1_end
+              - bulletcase_2
+                - bulletcase_2_end
+              - bulletcase_3
+                - bulletcase_3_end
+              - bulletcase_4
+                - bulletcase_4_end
+              - bulletcase_5
+                - bulletcase_5_end
+              - bulletcase_6
+                - bulletcase_6_end
+              - bulletcase_7
+                - bulletcase_7_end
+              - bulletcase_8
+                - bulletcase_8_end
+      - hammer
+        - hammer_end
+      - muzzle
+        - muzzle_end
+      - release
+        - release_end
+      - trigger
+        - trigger_end
+  - armpole.R
+    - armpole.R_end
+      - armpole.R_end_end
+  - chest
+    - arm.R
+      - elbow.R
+        - forearm.R
+          - hand.R
+            - middle1.R
+              - middle2.R
+                - middle3.R
+                  - middle3.R_end
+                    - middle3.R_end_end
+            - palm.R
+              - pink1.R
+                - pink2.R
+                  - pink3.R
+                    - pink3.R_end
+                      - pink3.R_end_end
+              - ring1.R
+                - ring2.R
+                  - ring3.R
+                    - ring3.R_end
+                      - ring3.R_end_end
+            - point1.R
+              - point2.R
+                - point3.R
+                  - point3.R_end
+                    - point3.R_end_end
+            - thumb1.R
+              - thumb2.R
+                - thumb3.R
+                  - thumb3.R_end
+                    - thumb3.R_end_end
+  - handcontrol.R
+    - handcontrol.R_end
+      - handcontrol.R_end_end
+OTHER: arms (Material)
+OTHER: Magnum (Material)
+OTHER: arm (Mesh)
+OTHER: Magnum357_Mesh (Mesh)
+CLIP: Armature|getPistol | len=2,80s | loop=False
+CLIP: Armature|idelAimgun | len=2,80s | loop=True
+CLIP: Armature|idelPistol | len=2,80s | loop=True
+CLIP: Armature|NoAimToAimGun | len=1,04s | loop=False
+CLIP: Armature|ReloadGun1 | len=2,36s | loop=False
+CLIP: Armature|ShootAimArm | len=1,92s | loop=False
+CLIP: Armature|ShootPistol | len=1,16s | loop=False
+CLIP: Armature|walkPistol | len=2,80s | loop=True
+CLIP: root|reloadArm1 | len=5,96s | loop=False
+GO: trigger_end
+GO: bullet_8_end
+GO: trigger
+  - trigger_end
+OTHER: arm (Transform)
+OTHER: bulletcase_2 (Transform)
+OTHER: bullet_5 (Transform)
+OTHER: root (Transform)
+OTHER: revolver (Transform)
+OTHER: palm.R (Transform)
+GO: point2.R
+  - point3.R
+    - point3.R_end
+      - point3.R_end_end
+GO: bulletcase_2
+  - bulletcase_2_end
+OTHER: handcontrol.R (Transform)
+OTHER: thumb2.R (Transform)
+GO: bulletcase_7_end
+OTHER: bulletcase_4 (Transform)
+GO: pink3.R_end_end
+GO: bulletcase_7
+  - bulletcase_7_end
+GO: bulletcase_3_end
+GO: bulletcase_1_end
+GO: bullet_3
+  - bullet_3_end
+OTHER: bulletcase_2_end (Transform)
+GO: handcontrol.R_end_end
+OTHER: point3.R_end_end (Transform)
+OTHER: cylinder (Transform)
+OTHER: point3.R_end (Transform)
+OTHER: hand.R (Transform)
+GO: ring3.R
+  - ring3.R_end
+    - ring3.R_end_end
+GO: pink2.R
+  - pink3.R
+    - pink3.R_end
+      - pink3.R_end_end
+OTHER: bullet_2 (Transform)
+OTHER: pink3.R (Transform)
+OTHER: point1.R (Transform)
+OTHER: bulletcase_7 (Transform)
+OTHER: thumb3.R (Transform)
+OTHER: point3.R (Transform)
+OTHER: arm (SkinnedMeshRenderer)
+GO: bullet_5
+  - bullet_5_end
+GO: elbow.R
+  - forearm.R
+    - hand.R
+      - middle1.R
+        - middle2.R
+          - middle3.R
+            - middle3.R_end
+              - middle3.R_end_end
+      - palm.R
+        - pink1.R
+          - pink2.R
+            - pink3.R
+              - pink3.R_end
+                - pink3.R_end_end
+        - ring1.R
+          - ring2.R
+            - ring3.R
+              - ring3.R_end
+                - ring3.R_end_end
+      - point1.R
+        - point2.R
+          - point3.R
+            - point3.R_end
+              - point3.R_end_end
+      - thumb1.R
+        - thumb2.R
+          - thumb3.R
+            - thumb3.R_end
+              - thumb3.R_end_end
+GO: middle3.R_end_end
+OTHER: bulletcase_3 (Transform)
+OTHER: chest (Transform)
+OTHER: middle3.R_end_end (Transform)
+OTHER: bullet_6_end (Transform)
+GO: bullet_4
+  - bullet_4_end
+GO: bullet_1
+  - bullet_1_end
+GO: bullet_4_end
+OTHER: thumb3.R_end (Transform)
+GO: bullet_6_end
+OTHER: bullet_8_end (Transform)
+OTHER: ammo_loaded (Transform)
+OTHER: bullet_1 (Transform)
+GO: hand.R
+  - middle1.R
+    - middle2.R
+      - middle3.R
+        - middle3.R_end
+          - middle3.R_end_end
+  - palm.R
+    - pink1.R
+      - pink2.R
+        - pink3.R
+          - pink3.R_end
+            - pink3.R_end_end
+    - ring1.R
+      - ring2.R
+        - ring3.R
+          - ring3.R_end
+            - ring3.R_end_end
+  - point1.R
+    - point2.R
+      - point3.R
+        - point3.R_end
+          - point3.R_end_end
+  - thumb1.R
+    - thumb2.R
+      - thumb3.R
+        - thumb3.R_end
+          - thumb3.R_end_end
+OTHER: bulletcase_3_end (Transform)
+GO: point3.R
+  - point3.R_end
+    - point3.R_end_end
+OTHER: bulletcase_4_end (Transform)
+OTHER: hammer (Transform)
+OTHER: release (Transform)
+OTHER: middle2.R (Transform)
+OTHER: Armature (Transform)
+GO: armpole.R_end_end
+OTHER: trigger (Transform)
+OTHER: bullet_3 (Transform)
+OTHER: ring3.R_end_end (Transform)
+OTHER: muzzle_end (Transform)
+OTHER: bulletcase_5 (Transform)
+OTHER: muzzle (Transform)
+OTHER: bullet_1_end (Transform)
+GO: thumb3.R_end_end
+GO: palm.R
+  - pink1.R
+    - pink2.R
+      - pink3.R
+        - pink3.R_end
+          - pink3.R_end_end
+  - ring1.R
+    - ring2.R
+      - ring3.R
+        - ring3.R_end
+          - ring3.R_end_end
+GO: root
+  - crane
+    - cylinder
+      - ejector_rod
+        - ammo_loaded
+          - bullet_1
+            - bullet_1_end
+          - bullet_2
+            - bullet_2_end
+          - bullet_3
+            - bullet_3_end
+          - bullet_4
+            - bullet_4_end
+          - bullet_5
+            - bullet_5_end
+          - bullet_6
+            - bullet_6_end
+          - bullet_7
+            - bullet_7_end
+          - bullet_8
+            - bullet_8_end
+          - bulletcase_1
+            - bulletcase_1_end
+          - bulletcase_2
+            - bulletcase_2_end
+          - bulletcase_3
+            - bulletcase_3_end
+          - bulletcase_4
+            - bulletcase_4_end
+          - bulletcase_5
+            - bulletcase_5_end
+          - bulletcase_6
+            - bulletcase_6_end
+          - bulletcase_7
+            - bulletcase_7_end
+          - bulletcase_8
+            - bulletcase_8_end
+  - hammer
+    - hammer_end
+  - muzzle
+    - muzzle_end
+  - release
+    - release_end
+  - trigger
+    - trigger_end
+OTHER: handcontrol.R_end_end (Transform)
+GO: bullet_7_end
+OTHER: pink3.R_end (Transform)
+OTHER: pink2.R (Transform)
+OTHER: point2.R (Transform)
+GO: thumb3.R
+  - thumb3.R_end
+    - thumb3.R_end_end
+OTHER: middle3.R (Transform)
+GO: handcontrol.R_end
+  - handcontrol.R_end_end
+OTHER: release_end (Transform)
+GO: crane
+  - cylinder
+    - ejector_rod
+      - ammo_loaded
+        - bullet_1
+          - bullet_1_end
+        - bullet_2
+          - bullet_2_end
+        - bullet_3
+          - bullet_3_end
+        - bullet_4
+          - bullet_4_end
+        - bullet_5
+          - bullet_5_end
+        - bullet_6
+          - bullet_6_end
+        - bullet_7
+          - bullet_7_end
+        - bullet_8
+          - bullet_8_end
+        - bulletcase_1
+          - bulletcase_1_end
+        - bulletcase_2
+          - bulletcase_2_end
+        - bulletcase_3
+          - bulletcase_3_end
+        - bulletcase_4
+          - bulletcase_4_end
+        - bulletcase_5
+          - bulletcase_5_end
+        - bulletcase_6
+          - bulletcase_6_end
+        - bulletcase_7
+          - bulletcase_7_end
+        - bulletcase_8
+          - bulletcase_8_end
+GO: thumb2.R
+  - thumb3.R
+    - thumb3.R_end
+      - thumb3.R_end_end
+GO: bullet_6
+  - bullet_6_end
+OTHER: bullet_7 (Transform)
+GO: thumb3.R_end
+  - thumb3.R_end_end
+GO: forearm.R
+  - hand.R
+    - middle1.R
+      - middle2.R
+        - middle3.R
+          - middle3.R_end
+            - middle3.R_end_end
+    - palm.R
+      - pink1.R
+        - pink2.R
+          - pink3.R
+            - pink3.R_end
+              - pink3.R_end_end
+      - ring1.R
+        - ring2.R
+          - ring3.R
+            - ring3.R_end
+              - ring3.R_end_end
+    - point1.R
+      - point2.R
+        - point3.R
+          - point3.R_end
+            - point3.R_end_end
+    - thumb1.R
+      - thumb2.R
+        - thumb3.R
+          - thumb3.R_end
+            - thumb3.R_end_end
+OTHER: bullet_2_end (Transform)
+GO: release
+  - release_end
+GO: bullet_1_end
+GO: hammer_end
+OTHER: pink1.R (Transform)
+GO: bulletcase_2_end
+OTHER: elbow.R (Transform)
+GO: hammer
+  - hammer_end
+OTHER: bulletcase_8_end (Transform)
+OTHER: bullet_5_end (Transform)
+OTHER: ring3.R (Transform)
+OTHER: armpole.R (Transform)
+GO: muzzle_end
+OTHER: armpole.R_end (Transform)
+GO: bulletcase_6_end
+OTHER: middle1.R (Transform)
+GO: ring1.R
+  - ring2.R
+    - ring3.R
+      - ring3.R_end
+        - ring3.R_end_end
+GO: bulletcase_6
+  - bulletcase_6_end
+GO: ammo_loaded
+  - bullet_1
+    - bullet_1_end
+  - bullet_2
+    - bullet_2_end
+  - bullet_3
+    - bullet_3_end
+  - bullet_4
+    - bullet_4_end
+  - bullet_5
+    - bullet_5_end
+  - bullet_6
+    - bullet_6_end
+  - bullet_7
+    - bullet_7_end
+  - bullet_8
+    - bullet_8_end
+  - bulletcase_1
+    - bulletcase_1_end
+  - bulletcase_2
+    - bulletcase_2_end
+  - bulletcase_3
+    - bulletcase_3_end
+  - bulletcase_4
+    - bulletcase_4_end
+  - bulletcase_5
+    - bulletcase_5_end
+  - bulletcase_6
+    - bulletcase_6_end
+  - bulletcase_7
+    - bulletcase_7_end
+  - bulletcase_8
+    - bulletcase_8_end
+GO: ring3.R_end_end
+GO: middle3.R
+  - middle3.R_end
+    - middle3.R_end_end
+GO: middle3.R_end
+  - middle3.R_end_end
+GO: point1.R
+  - point2.R
+    - point3.R
+      - point3.R_end
+        - point3.R_end_end
+GO: bulletcase_8_end
+GO: muzzle
+  - muzzle_end
+GO: handcontrol.R
+  - handcontrol.R_end
+    - handcontrol.R_end_end
+OTHER: bullet_7_end (Transform)
+OTHER: Magnum357_Mesh (SkinnedMeshRenderer)
+GO: ring2.R
+  - ring3.R
+    - ring3.R_end
+      - ring3.R_end_end
+OTHER: hammer_end (Transform)
+GO: ring3.R_end
+  - ring3.R_end_end
+OTHER: root (Transform)
+OTHER: bulletcase_5_end (Transform)
+OTHER: bulletcase_6_end (Transform)
+GO: bulletcase_4_end
+OTHER: bullet_6 (Transform)
+OTHER: bullet_8 (Transform)
+GO: bullet_5_end
+OTHER: armpole.R_end_end (Transform)
+OTHER: bulletcase_8 (Transform)
+OTHER: bulletcase_1 (Transform)
+OTHER: bulletcase_1_end (Transform)
+GO: thumb1.R
+  - thumb2.R
+    - thumb3.R
+      - thumb3.R_end
+        - thumb3.R_end_end
+OTHER: bullet_4_end (Transform)
+GO: bullet_2_end
+OTHER: pink3.R_end_end (Transform)
+GO: ejector_rod
+  - ammo_loaded
+    - bullet_1
+      - bullet_1_end
+    - bullet_2
+      - bullet_2_end
+    - bullet_3
+      - bullet_3_end
+    - bullet_4
+      - bullet_4_end
+    - bullet_5
+      - bullet_5_end
+    - bullet_6
+      - bullet_6_end
+    - bullet_7
+      - bullet_7_end
+    - bullet_8
+      - bullet_8_end
+    - bulletcase_1
+      - bulletcase_1_end
+    - bulletcase_2
+      - bulletcase_2_end
+    - bulletcase_3
+      - bulletcase_3_end
+    - bulletcase_4
+      - bulletcase_4_end
+    - bulletcase_5
+      - bulletcase_5_end
+    - bulletcase_6
+      - bulletcase_6_end
+    - bulletcase_7
+      - bulletcase_7_end
+    - bulletcase_8
+      - bulletcase_8_end
+GO: armpole.R
+  - armpole.R_end
+    - armpole.R_end_end
+OTHER: arm.R (Transform)
+GO: arm.R
+  - elbow.R
+    - forearm.R
+      - hand.R
+        - middle1.R
+          - middle2.R
+            - middle3.R
+              - middle3.R_end
+                - middle3.R_end_end
+        - palm.R
+          - pink1.R
+            - pink2.R
+              - pink3.R
+                - pink3.R_end
+                  - pink3.R_end_end
+          - ring1.R
+            - ring2.R
+              - ring3.R
+                - ring3.R_end
+                  - ring3.R_end_end
+        - point1.R
+          - point2.R
+            - point3.R
+              - point3.R_end
+                - point3.R_end_end
+        - thumb1.R
+          - thumb2.R
+            - thumb3.R
+              - thumb3.R_end
+                - thumb3.R_end_end
+GO: chest
+  - arm.R
+    - elbow.R
+      - forearm.R
+        - hand.R
+          - middle1.R
+            - middle2.R
+              - middle3.R
+                - middle3.R_end
+                  - middle3.R_end_end
+          - palm.R
+            - pink1.R
+              - pink2.R
+                - pink3.R
+                  - pink3.R_end
+                    - pink3.R_end_end
+            - ring1.R
+              - ring2.R
+                - ring3.R
+                  - ring3.R_end
+                    - ring3.R_end_end
+          - point1.R
+            - point2.R
+              - point3.R
+                - point3.R_end
+                  - point3.R_end_end
+          - thumb1.R
+            - thumb2.R
+              - thumb3.R
+                - thumb3.R_end
+                  - thumb3.R_end_end
+GO: middle2.R
+  - middle3.R
+    - middle3.R_end
+      - middle3.R_end_end
+GO: bullet_2
+  - bullet_2_end
+GO: Armature
+  - root
+    - crane
+      - cylinder
+        - ejector_rod
+          - ammo_loaded
+            - bullet_1
+              - bullet_1_end
+            - bullet_2
+              - bullet_2_end
+            - bullet_3
+              - bullet_3_end
+            - bullet_4
+              - bullet_4_end
+            - bullet_5
+              - bullet_5_end
+            - bullet_6
+              - bullet_6_end
+            - bullet_7
+              - bullet_7_end
+            - bullet_8
+              - bullet_8_end
+            - bulletcase_1
+              - bulletcase_1_end
+            - bulletcase_2
+              - bulletcase_2_end
+            - bulletcase_3
+              - bulletcase_3_end
+            - bulletcase_4
+              - bulletcase_4_end
+            - bulletcase_5
+              - bulletcase_5_end
+            - bulletcase_6
+              - bulletcase_6_end
+            - bulletcase_7
+              - bulletcase_7_end
+            - bulletcase_8
+              - bulletcase_8_end
+    - hammer
+      - hammer_end
+    - muzzle
+      - muzzle_end
+    - release
+      - release_end
+    - trigger
+      - trigger_end
+OTHER: bulletcase_7_end (Transform)
+GO: pink3.R_end
+  - pink3.R_end_end
+OTHER: thumb3.R_end_end (Transform)
+OTHER: thumb1.R (Transform)
+GO: bullet_8
+  - bullet_8_end
+GO: point3.R_end_end
+OTHER: ring1.R (Transform)
+GO: pink3.R
+  - pink3.R_end
+    - pink3.R_end_end
+OTHER: trigger_end (Transform)
+GO: bulletcase_1
+  - bulletcase_1_end
+OTHER: ring2.R (Transform)
+GO: bulletcase_3
+  - bulletcase_3_end
+GO: pink1.R
+  - pink2.R
+    - pink3.R
+      - pink3.R_end
+        - pink3.R_end_end
+OTHER: ring3.R_end (Transform)
+GO: armpole.R_end
+  - armpole.R_end_end
+GO: cylinder
+  - ejector_rod
+    - ammo_loaded
+      - bullet_1
+        - bullet_1_end
+      - bullet_2
+        - bullet_2_end
+      - bullet_3
+        - bullet_3_end
+      - bullet_4
+        - bullet_4_end
+      - bullet_5
+        - bullet_5_end
+      - bullet_6
+        - bullet_6_end
+      - bullet_7
+        - bullet_7_end
+      - bullet_8
+        - bullet_8_end
+      - bulletcase_1
+        - bulletcase_1_end
+      - bulletcase_2
+        - bulletcase_2_end
+      - bulletcase_3
+        - bulletcase_3_end
+      - bulletcase_4
+        - bulletcase_4_end
+      - bulletcase_5
+        - bulletcase_5_end
+      - bulletcase_6
+        - bulletcase_6_end
+      - bulletcase_7
+        - bulletcase_7_end
+      - bulletcase_8
+        - bulletcase_8_end
+OTHER: bulletcase_6 (Transform)
+GO: bulletcase_4
+  - bulletcase_4_end
+OTHER: bullet_4 (Transform)
+GO: bullet_3_end
+OTHER: bullet_3_end (Transform)
+OTHER: middle3.R_end (Transform)
+GO: point3.R_end
+  - point3.R_end_end
+OTHER: handcontrol.R_end (Transform)
+OTHER: Magnum357_Mesh (Transform)
+OTHER: crane (Transform)
+GO: bulletcase_5
+  - bulletcase_5_end
+GO: bulletcase_8
+  - bulletcase_8_end
+GO: middle1.R
+  - middle2.R
+    - middle3.R
+      - middle3.R_end
+        - middle3.R_end_end
+OTHER: forearm.R (Transform)
+GO: bullet_7
+  - bullet_7_end
+GO: release_end
+GO: bulletcase_5_end
+OTHER: ejector_rod (Transform)
