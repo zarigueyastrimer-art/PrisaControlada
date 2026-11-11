@@ -377,6 +377,7 @@ GameObject:
   - component: {fileID: 7559429081869984480}
   - component: {fileID: 6401105409706743718}
   - component: {fileID: 3362996807087794962}
+  - component: {fileID: 8100000000000000001}
   m_Layer: 0
   m_Name: FlashlightPickup
   m_TagString: Untagged
@@ -521,4 +522,25 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 4.165777, y: 14.424382, z: 3.976661}
+  m_Center: {x: 0.03757446, y: 7.2243094, z: 0.009576107}
+--- !u!65 &8100000000000000001
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8953463114343671885}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 10.832444, y: 21.091049, z: 10.643328}
   m_Center: {x: 0.03757446, y: 7.2243094, z: 0.009576107}

@@ -250,6 +250,10 @@ namespace PrisaControlada.Player
                 return hit.collider.gameObject;
             if (hit.collider.GetComponentInParent<GlockMagazinePickup>() != null)
                 return hit.collider.gameObject;
+            if (hit.collider.GetComponentInParent<NoteItem>() != null)
+                return hit.collider.gameObject;
+            if (hit.collider.GetComponentInParent<AudioTrigger>() != null)
+                return hit.collider.gameObject;
             if (hit.collider.GetComponentInParent<PickupItem>() != null)
                 return hit.collider.gameObject;
 

@@ -1,3 +1,4 @@
+using PrisaControlada.Player;
 using UnityEngine;
 
 namespace PrisaControlada.Enemies
@@ -8,6 +9,22 @@ namespace PrisaControlada.Enemies
 
         [Header("Zombie Behavior")]
         [SerializeField] protected float loseTargetTime = 5f;
+
+        [Header("Hearing (pasos + micrófono)")]
+        [Tooltip("Distancia máxima a la que se oye el ruido más fuerte (correr). Caminar se oye a menos distancia y agachado no se oye")]
+        [SerializeField] private float hearingRange = 16f;
+        [Tooltip("Nivel mínimo de ruido para oírlo. Por debajo (ej. agachado) es inaudible")]
+        [SerializeField] private float minHeardLevel = 0.18f;
+        [Tooltip("Segundos que recuerda un ruido escuchado")]
+        [SerializeField] private float noiseMemorySeconds = 2f;
+
+        [Header("Audio (3D loop)")]
+        [SerializeField] private AudioClip breathingClip;
+        [SerializeField, Range(0f, 1f)] private float breathingVolume = 1f;
+        [SerializeField] private float breathingMinDistance = 2f;
+        [SerializeField] private float breathingMaxDistance = 20f;
+
+        private AudioSource _breathingSource;
 
         [Header("Search")]
         [SerializeField] private float searchRadius = 6f;
@@ -40,6 +57,16 @@ namespace PrisaControlada.Enemies
         private float _searchWaitUntil;
         private Animator _animator;
 
+        private MicNoiseMeter _mic;
+        private readonly System.Collections.Generic.List<NoiseStamp> _noiseStamps = new System.Collections.Generic.List<NoiseStamp>();
+
+        private struct NoiseStamp
+        {
+            public float time;
+            public float level;
+            public Vector3 position;
+        }
+
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
         private static readonly int CanExitAttackHash = Animator.StringToHash("CanExitAttack");
@@ -49,11 +76,38 @@ namespace PrisaControlada.Enemies
             base.Awake();
             _staggerSeed = Random.Range(0f, 100f);
             _animator = GetComponentInChildren<Animator>();
+
+            _breathingSource = gameObject.AddComponent<AudioSource>();
+            _breathingSource.playOnAwake = false;
+            _breathingSource.loop = true;
+            _breathingSource.spatialBlend = 1f;
+            _breathingSource.rolloffMode = AudioRolloffMode.Linear;
+            _breathingSource.minDistance = breathingMinDistance;
+            _breathingSource.maxDistance = breathingMaxDistance;
+            _breathingSource.dopplerLevel = 0f;
+            _breathingSource.volume = breathingVolume;
+            _breathingSource.clip = breathingClip;
+            if (breathingClip != null)
+                _breathingSource.Play();
         }
 
         protected override void Start()
         {
             base.Start();
+
+            // Escucha: pasos del jugador (OnNoiseMade) + micrófono (mismo sistema que el ciego).
+            if (Player != null)
+            {
+                _mic = Player.GetComponent<MicNoiseMeter>();
+                Player.OnNoiseMade += HandlePlayerNoise;
+            }
+        }
+
+        protected override void OnDestroy()
+        {
+            if (Player != null)
+                Player.OnNoiseMade -= HandlePlayerNoise;
+            base.OnDestroy();
         }
 
         private System.Collections.Generic.Dictionary<Transform, Vector3> _boneOffsets = new System.Collections.Generic.Dictionary<Transform, Vector3>();
@@ -171,7 +225,11 @@ namespace PrisaControlada.Enemies
                 }
             }
 
-            bool seen = CanSeePlayer() || PlayerCloseEnough();
+            // Detecta al jugador: lo ve, está cerca, le pegó (aggro) o ESCUCHA su ruido.
+            // Escucha depende del ruido: correr (1.0) se oye lejos, caminar (0.35) cerca,
+            // agachado (0.12) nada; el micrófono aplica igual con caída por distancia.
+            PruneNoise();
+            bool seen = PlayerDetected() || HeardPlayer();
 
             if (seen)
             {
@@ -462,10 +520,61 @@ namespace PrisaControlada.Enemies
             return (point - transform.position).sqrMagnitude < 1f;
         }
 
-        private bool PlayerCloseEnough()
+        // ---- Escucha (mismo sistema que BlindEnemy) ----
+
+        private void HandlePlayerNoise(float level)
         {
-            if (Player == null) return false;
-            return Vector3.Distance(transform.position, Player.transform.position) <= attackRange;
+            if (Player == null) return;
+            _noiseStamps.Add(new NoiseStamp
+            {
+                time = Time.time,
+                level = level,
+                position = Player.transform.position
+            });
+        }
+
+        private void PruneNoise()
+        {
+            for (int i = _noiseStamps.Count - 1; i >= 0; i--)
+            {
+                if (Time.time - _noiseStamps[i].time > noiseMemorySeconds)
+                    _noiseStamps.RemoveAt(i);
+            }
+        }
+
+        // Nivel de ruido de los pasos: depende del tipo de paso y la distancia al origen.
+        private float GetFootstepLevel()
+        {
+            float level = 0f;
+            Vector3 myPos = transform.position;
+
+            foreach (NoiseStamp stamp in _noiseStamps)
+            {
+                float dist = Vector3.Distance(myPos, stamp.position);
+                float falloff = Mathf.Clamp01(1f - dist / hearingRange);
+                level = Mathf.Max(level, stamp.level * falloff);
+            }
+
+            return level;
+        }
+
+        // Nivel del micrófono del jugador con caída por distancia.
+        private float GetMicLevel()
+        {
+            if (_mic == null || Player == null) return 0f;
+
+            float micLevel = _mic.CurrentLevel;
+            if (micLevel <= 0f) return 0f;
+
+            float dist = Vector3.Distance(transform.position, Player.transform.position);
+            float falloff = Mathf.Clamp01(1f - dist / hearingRange);
+            return micLevel * falloff;
+        }
+
+        private bool HeardPlayer()
+        {
+            if (IsDead || Player == null) return false;
+            return GetFootstepLevel() >= minHeardLevel || GetMicLevel() >= minHeardLevel;
         }
 
         private Vector3 GetStaggerTarget(Vector3 target)

@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8523098886693481111
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5755948602829614884}
+  - component: {fileID: 4532298359058235585}
+  m_Layer: 0
+  m_Name: ItemSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5755948602829614884
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8523098886693481111}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 10.959368, y: 0.877, z: 23.687}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4532298359058235585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8523098886693481111}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lootTable:
+  - prefab: {fileID: 3602698204905261615, guid: 80ff8a7b58da59848a803faffd633732, type: 3}
+    weight: 2
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 8100000000000000001, guid: 5b9e3d7a2c6f1e8b4d0a7c3f9e5b2d68, type: 3}
+    weight: 1.5
+    minCount: 1
+    maxCount: 2
+  - prefab: {fileID: 2440703629766085943, guid: f4ca59f33659e5b46910d10cadd7fa44, type: 3}
+    weight: 4
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 8953463114343671885, guid: 8d0e7fa2898005a46a3a3bf25e31b8e9, type: 3}
+    weight: 2
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 9160506155876689135, guid: 87e04c213c21472479e7403b9a8a9ec0, type: 3}
+    weight: 2
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 1094848203072187038, guid: 5cf33cab92087d14f98fe99c0dde3c67, type: 3}
+    weight: 3
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 7432363870402663014, guid: 818909b4cc1c4f046bf6a059d4f62d10, type: 3}
+    weight: 1
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 4100182747675792064, guid: ea705bca968421a4b99ee4929a71f0ef, type: 3}
+    weight: 1
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 3020972418427580096, guid: 35614460b384ebf40b0d07ed75bc27ec, type: 3}
+    weight: 2
+    minCount: 1
+    maxCount: 1
+  - prefab: {fileID: 6421093951619793568, guid: 2fb76bc4289c3f148a215836a3e2d4e3, type: 3}
+    weight: 1
+    minCount: 1
+    maxCount: 1
+  nothingWeight: 10
+  spawnRadius: 0
+  randomRotation: 1
+  spawnOnStart: 1
+  spawnOnlyOnce: 1

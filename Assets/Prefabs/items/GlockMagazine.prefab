@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2834881615790512353}
   - component: {fileID: 6678877385046393157}
   - component: {fileID: 7635302542474623866}
+  - component: {fileID: 8100000000000000008}
   m_Layer: 0
   m_Name: GlockMagazine
   m_TagString: Untagged
@@ -57,6 +58,27 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.016352464, y: 0.024014918, z: 0.007558243}
+  m_Center: {x: -0.030118048, y: 0.014986674, z: -0.00064625073}
+--- !u!65 &8100000000000000008
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1094848203072187038}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.036352464, y: 0.044014918, z: 0.027558243}
   m_Center: {x: -0.030118048, y: 0.014986674, z: -0.00064625073}
 --- !u!54 &6678877385046393157
 Rigidbody:

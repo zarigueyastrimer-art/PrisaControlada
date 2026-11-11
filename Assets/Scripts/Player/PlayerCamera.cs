@@ -23,6 +23,12 @@ namespace PrisaControlada.Player
         [SerializeField, Range(0.1f, 20f)] private float tiltSmoothing = 12f;
         [SerializeField, Range(0.1f, 20f)] private float tiltRecovery = 3f;
 
+        [Header("Zoom sin arma (click derecho, mantener)")]
+        [SerializeField] private bool zoomWhenUnarmed = true;
+        [SerializeField] private float zoomFov = 45f;
+        [SerializeField, Min(0f)] private float zoomSmoothTime = 0.1f;
+        [SerializeField, Min(0.1f)] private float weaponScanInterval = 0.5f;
+
         private Camera _cam;
         private PlayerController _player;
         private PlayerHealth _health;
@@ -32,12 +38,30 @@ namespace PrisaControlada.Player
         private float _pitch;
         private float _yaw;
         private float _tilt;
+        private bool _lookEnabled = true;
+
+        private float _baseFov;
+        private float _zoomVelocity;
+        private float _nextWeaponScan;
+        private WeaponController[] _weapons;
+        private ShotgunToggle[] _shotguns;
+        private GlockToggle[] _glocks;
+
+        public bool LookEnabled => _lookEnabled;
+
+        public void SetLookEnabled(bool enabled)
+        {
+            _lookEnabled = enabled;
+        }
 
         private void Awake()
         {
             _cam = GetComponent<Camera>();
             _player = GetComponentInParent<PlayerController>();
             _health = GetComponentInParent<PlayerHealth>();
+
+            if (_cam != null)
+                _baseFov = _cam.fieldOfView;
         }
 
         private void Start()
@@ -48,18 +72,21 @@ namespace PrisaControlada.Player
 
         private void LateUpdate()
         {
-            if (_player == null || Mouse.current == null) return;
+            if (_player == null || _cam == null) return;
 
-            Vector2 raw = Mouse.current.delta.ReadValue();
-            Vector2 mouse = raw;
+            Vector2 mouse = Vector2.zero;
+            if (_lookEnabled && Mouse.current != null)
+            {
+                mouse = Mouse.current.delta.ReadValue();
 
-            _targetPitch = Mathf.Clamp(_targetPitch - mouse.y * lookSpeed, -lookXLimit, lookXLimit);
-            _targetYaw += mouse.x * lookSpeed;
+                _targetPitch = Mathf.Clamp(_targetPitch - mouse.y * lookSpeed, -lookXLimit, lookXLimit);
+                _targetYaw += mouse.x * lookSpeed;
 
-            // Keep the accumulated yaw bounded so it never drifts to huge values.
-            float yawWrap = Mathf.Floor((_targetYaw + 180f) / 360f) * 360f;
-            if (yawWrap != 0f)
-                _targetYaw -= yawWrap;
+                // Keep the accumulated yaw bounded so it never drifts to huge values.
+                float yawWrap = Mathf.Floor((_targetYaw + 180f) / 360f) * 360f;
+                if (yawWrap != 0f)
+                    _targetYaw -= yawWrap;
+            }
 
             // First-order exponential approach. No spring, so it can never overshoot,
             // oscillate, or produce NaN no matter how fast the mouse moves.
@@ -96,6 +123,63 @@ namespace PrisaControlada.Player
 
             _cam.transform.localRotation = Quaternion.Euler(_pitch, 0f, _tilt);
             _player.transform.localRotation = Quaternion.Euler(0f, _yaw, 0f);
+
+            UpdateUnarmedZoom();
+        }
+
+        // Click derecho SIN arma equipada: mantener = zoom, soltar = vuelve al FOV normal.
+        // Con un arma equipada el FOV lo maneja el arma, asi que aca no se toca.
+        private void UpdateUnarmedZoom()
+        {
+            if (!zoomWhenUnarmed || _cam == null) return;
+
+            if (AnyWeaponEquipped())
+            {
+                _zoomVelocity = 0f;
+                return;
+            }
+
+            bool held = _lookEnabled
+                && Mouse.current != null
+                && Mouse.current.rightButton.isPressed;
+
+            float target = held ? zoomFov : _baseFov;
+
+            if (Mathf.Abs(_cam.fieldOfView - target) <= 0.01f)
+            {
+                _cam.fieldOfView = target;
+                _zoomVelocity = 0f;
+                return;
+            }
+
+            _cam.fieldOfView = Mathf.SmoothDamp(
+                _cam.fieldOfView, target, ref _zoomVelocity, Mathf.Max(0.0001f, zoomSmoothTime));
+        }
+
+        private bool AnyWeaponEquipped()
+        {
+            if (Time.unscaledTime >= _nextWeaponScan)
+            {
+                _nextWeaponScan = Time.unscaledTime + Mathf.Max(0.1f, weaponScanInterval);
+
+                _weapons = FindObjectsByType<WeaponController>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+                _shotguns = FindObjectsByType<ShotgunToggle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+                _glocks = FindObjectsByType<GlockToggle>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            }
+
+            if (_weapons != null)
+                foreach (WeaponController w in _weapons)
+                    if (w != null && w.IsEquipped) return true;
+
+            if (_shotguns != null)
+                foreach (ShotgunToggle s in _shotguns)
+                    if (s != null && s.IsEquipped) return true;
+
+            if (_glocks != null)
+                foreach (GlockToggle g in _glocks)
+                    if (g != null && g.IsEquipped) return true;
+
+            return false;
         }
 
         public void AddRecoil(float pitchDegrees, float yawDegrees)

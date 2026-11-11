@@ -24,8 +24,18 @@ namespace PrisaControlada.Enemies
         [SerializeField] private float teleportDistance = 2.5f;
         [SerializeField, Range(1f, 180f)] private float viewEscapeAngle = 75f;
         [SerializeField, Range(0f, 1f)] private float screamHeardLevel = 0.8f;
+
+        [Header("Audio (3D loop)")]
+        [SerializeField] private AudioClip blindExtraClip;
+        [SerializeField, Range(0f, 1f)] private float blindExtraVolume = 1f;
+        [SerializeField] private float blindExtraMinDistance = 2f;
+        [SerializeField] private float blindExtraMaxDistance = 20f;
+
+        [Header("Voice (one-shot)")]
         [SerializeField] private AudioSource voiceSource;
         [SerializeField] private AudioClip hearYouClip;
+
+        private AudioSource _extraSource;
 
         private MicNoiseMeter _mic;
         private BlindState _state = BlindState.Wander;
@@ -35,6 +45,9 @@ namespace PrisaControlada.Enemies
         private float _loseTimer;
         private Vector3 _wanderTarget;
         private float _nextWanderTime;
+        private Animator _animator;
+
+        private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
         private readonly List<NoiseStamp> _noiseStamps = new List<NoiseStamp>();
 
@@ -50,6 +63,20 @@ namespace PrisaControlada.Enemies
         protected override void Awake()
         {
             base.Awake();
+            _animator = GetComponentInChildren<Animator>();
+
+            _extraSource = gameObject.AddComponent<AudioSource>();
+            _extraSource.playOnAwake = false;
+            _extraSource.loop = true;
+            _extraSource.spatialBlend = 1f;
+            _extraSource.rolloffMode = AudioRolloffMode.Linear;
+            _extraSource.minDistance = blindExtraMinDistance;
+            _extraSource.maxDistance = blindExtraMaxDistance;
+            _extraSource.dopplerLevel = 0f;
+            _extraSource.volume = blindExtraVolume;
+            _extraSource.clip = blindExtraClip;
+            if (blindExtraClip != null)
+                _extraSource.Play();
         }
 
         public override void ApplyDefaultStats()
@@ -148,6 +175,21 @@ namespace PrisaControlada.Enemies
                 case BlindState.Stalk: UpdateStalk(); break;
                 case BlindState.Chase: UpdateChase(); break;
             }
+
+            UpdateAnimation();
+        }
+
+        private void UpdateAnimation()
+        {
+            if (_animator == null) return;
+
+            bool isMoving = Agent != null
+                && Agent.isOnNavMesh
+                && !Agent.isStopped
+                && Agent.velocity.sqrMagnitude > 0.05f
+                && !IsAttacking;
+
+            _animator.SetFloat(SpeedHash, isMoving ? 1f : 0f, 0.1f, Time.deltaTime);
         }
 
         private void UpdateWander()

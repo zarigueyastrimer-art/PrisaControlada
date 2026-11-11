@@ -26,8 +26,18 @@ namespace PrisaControlada.Player
 
         [Header("Footstep Settings")]
         [SerializeField] private AudioSource footstepAudioSource;
-        [SerializeField] private AudioClip[] walkFootstepSounds;
-        [SerializeField] private AudioClip[] runFootstepSounds;
+        [SerializeField] private AudioClip[] footstepSounds;
+
+        [Header("Footstep Speed Thresholds")]
+        [SerializeField, Min(0f)] private float idleMaxSpeed = 100f;
+        [SerializeField, Min(0f)] private float crouchMaxSpeed = 250f;
+        [SerializeField, Min(0f)] private float walkMaxSpeed = 500f;
+
+        [Header("Footstep Volumes & Intervals")]
+        [SerializeField, Range(0f, 1f)] private float crouchFootstepVolume = 0.4f;
+        [SerializeField, Range(0f, 1f)] private float walkFootstepVolume = 0.5f;
+        [SerializeField, Range(0f, 1f)] private float runFootstepVolume = 0.8f;
+        [SerializeField] private float crouchStepInterval = 0.6f;
         [SerializeField] private float walkStepInterval = 0.5f;
         [SerializeField] private float runStepInterval = 0.3f;
 
@@ -42,7 +52,19 @@ namespace PrisaControlada.Player
         [SerializeField, Range(1f, 4f)] private float healthSpeedExponent = 2f;
         [SerializeField, Min(0f)] private int healthThreshold = 25;
 
+        [Header("Stamina")]
+        [SerializeField] private float maxStamina = 100f;
+        [SerializeField] private float staminaDrainRate = 25f;   // por segundo corriendo
+        [SerializeField] private float staminaRegenRate = 15f;   // por segundo recuperando
+        [SerializeField] private float staminaRegenDelay = 1.5f; // segundos sin correr antes de regenerar
+
         public event System.Action<float> OnNoiseMade;
+        public event System.Action<float, float> OnStaminaChanged; // current, max
+        public event System.Action<bool> OnStaminaExhausted; // true cuando se agota, false cuando recupera
+
+        private float _currentStamina;
+        private float _lastSprintTime = -1f; // -1 indica que no se ha corrido nunca
+        private bool _isStaminaExhausted;
 
         [Header("References")]
         [SerializeField] private Transform cameraPivot;
@@ -77,6 +99,10 @@ namespace PrisaControlada.Player
         public Vector3 MoveVector => _moveDirection;
         public InputActionAsset InputActions => inputActions;
         public bool ControlEnabled => _controlEnabled;
+
+        public float CurrentStamina => _currentStamina;
+        public bool IsStaminaExhausted => _isStaminaExhausted;
+        public float MaxStamina => maxStamina;
 
         public void SetControlEnabled(bool enabled)
         {
@@ -120,6 +146,17 @@ namespace PrisaControlada.Player
 
             if (weapon == null)
                 weapon = GetComponentInChildren<WeaponController>();
+
+            if (footstepAudioSource == null)
+                footstepAudioSource = GetComponent<AudioSource>();
+            if (footstepAudioSource == null)
+                footstepAudioSource = gameObject.AddComponent<AudioSource>();
+            footstepAudioSource.playOnAwake = false;
+            footstepAudioSource.loop = false;
+
+            // Inicializar stamina
+            _currentStamina = maxStamina;
+            _isStaminaExhausted = false;
         }
 
         private void OnEnable()
@@ -180,7 +217,11 @@ namespace PrisaControlada.Player
             Vector2 input = _moveAction != null ? _moveAction.ReadValue<Vector2>() : Vector2.zero;
             // Mientras apunta o recarga no se puede correr y se camina mas lento (~mitad).
             bool weaponBusy = weapon != null && (weapon.IsAiming || weapon.IsReloading);
-            _isSprinting = !_isCrouching && !weaponBusy && _sprintAction != null && _sprintAction.IsPressed();
+            
+            // Determinar si se puede correr (tener stamina no agotada)
+            bool canSprint = !_isCrouching && !_isStaminaExhausted;
+            _isSprinting = canSprint && !weaponBusy && _sprintAction != null && _sprintAction.IsPressed();
+            
             float baseSpeed = _isCrouching ? crouchSpeed : (_isSprinting ? runSpeed : walkSpeed);
             if (weaponBusy) baseSpeed *= weaponBusySpeedFactor;
             float speed = _isCrouching ? baseSpeed : baseSpeed * GetHealthSpeedFactor();
@@ -193,10 +234,74 @@ namespace PrisaControlada.Player
 
             if (_jumpAction != null && _jumpAction.IsPressed() && !_isCrouching && _controller.isGrounded)
                 _moveDirection.y = jumpPower;
-            else if (!_controller.isGrounded)
-                _moveDirection.y -= gravity * Time.deltaTime;
+            else
+            {
+                // Aplicar gravedad siempre (incluso en suelo) para evitar que el jugador
+                // se quede "flotando" encima de objetos pequeños.
+                // Cuando está en el suelo, usamos una gravedad más fuerte para pegarlo al suelo.
+                float currentGravity = _controller.isGrounded ? gravity * 3f : gravity;
+                _moveDirection.y -= currentGravity * Time.deltaTime;
+            }
+
+            // Manejar stamina (solo si hay movimiento horizontal)
+            HandleStamina();
 
             _controller.Move(_moveDirection * Time.deltaTime);
+        }
+
+        private void HandleStamina()
+        {
+            bool isMovingHorizontally = _moveDirection.magnitude > 0.1f;
+            bool isSprintingNow = _isSprinting && isMovingHorizontally && !_isCrouching;
+            
+            // Actualizar el tiempo del último sprint
+            if (isSprintingNow)
+            {
+                _lastSprintTime = Time.time;
+            }
+
+            if (isSprintingNow)
+            {
+                // Agotar stamina mientras corremos
+                _currentStamina -= staminaDrainRate * Time.deltaTime;
+                
+                if (_currentStamina <= 0f)
+                {
+                    _currentStamina = 0f;
+                    _isStaminaExhausted = true;
+                }
+            }
+            else
+            {
+                // Regenerar stamina si no está corriendo y no está agotada
+                float timeSinceLastSprint = Time.time - _lastSprintTime;
+                
+                if (timeSinceLastSprint >= staminaRegenDelay)
+                {
+                    _currentStamina += staminaRegenRate * Time.deltaTime;
+                    
+                    if (_currentStamina >= maxStamina)
+                    {
+                        _currentStamina = maxStamina;
+                        _isStaminaExhausted = false;
+                    }
+                }
+            }
+
+            // Notificar cambio de stamina
+            OnStaminaChanged?.Invoke(_currentStamina, maxStamina);
+            
+            // Notificar estado de stamina agotada solo cuando cambie
+            if (_currentStamina <= 0f && !_isStaminaExhausted)
+            {
+                _isStaminaExhausted = true;
+                OnStaminaExhausted?.Invoke(true);
+            }
+            else if (_currentStamina >= maxStamina && _isStaminaExhausted)
+            {
+                _isStaminaExhausted = false;
+                OnStaminaExhausted?.Invoke(false);
+            }
         }
 
         private float GetHealthSpeedFactor()
@@ -209,29 +314,57 @@ namespace PrisaControlada.Player
             return Mathf.Lerp(1f, minSpeedFactor, Mathf.Pow(t, healthSpeedExponent));
         }
 
+        private enum FootstepState { Idle, Crouch, Walk, Run }
+
+        private FootstepState GetFootstepState(float speed)
+        {
+            if (speed < idleMaxSpeed) return FootstepState.Idle;
+            if (speed < crouchMaxSpeed) return FootstepState.Crouch;
+            if (speed < walkMaxSpeed) return FootstepState.Walk;
+            return FootstepState.Run;
+        }
+
         private void HandleFootsteps()
         {
-            if (!_controller.isGrounded || _moveDirection.magnitude <= 0f) return;
+            if (!_controller.isGrounded) return;
 
-            float stepInterval = _isSprinting ? runStepInterval : walkStepInterval;
+            Vector3 horizontalVel = new Vector3(_controller.velocity.x, 0f, _controller.velocity.z);
+            float speed = horizontalVel.magnitude;
+
+            FootstepState state = GetFootstepState(speed);
+            if (state == FootstepState.Idle) return;
+
+            float interval = state switch
+            {
+                FootstepState.Crouch => crouchStepInterval,
+                FootstepState.Walk => walkStepInterval,
+                FootstepState.Run => runStepInterval,
+                _ => walkStepInterval
+            };
 
             if (Time.time >= _nextStepTime)
             {
-                PlayFootstepSound(_isSprinting);
-                OnNoiseMade?.Invoke(_isCrouching ? crouchNoise : (_isSprinting ? runNoise : walkNoise));
-                _nextStepTime = Time.time + stepInterval;
+                PlayFootstepSound(state);
+                OnNoiseMade?.Invoke(state == FootstepState.Crouch ? crouchNoise : (state == FootstepState.Run ? runNoise : walkNoise));
+                _nextStepTime = Time.time + interval;
             }
         }
 
-        private void PlayFootstepSound(bool isRunning)
+        private void PlayFootstepSound(FootstepState state)
         {
             if (footstepAudioSource == null) return;
 
-            AudioClip[] selectedFootstepSounds = isRunning ? runFootstepSounds : walkFootstepSounds;
-            if (selectedFootstepSounds == null || selectedFootstepSounds.Length == 0) return;
+            if (footstepSounds == null || footstepSounds.Length == 0) return;
 
-            footstepAudioSource.clip = selectedFootstepSounds[Random.Range(0, selectedFootstepSounds.Length)];
-            footstepAudioSource.Play();
+            var clip = footstepSounds[Random.Range(0, footstepSounds.Length)];
+            float volume = state switch
+            {
+                FootstepState.Crouch => crouchFootstepVolume,
+                FootstepState.Walk => walkFootstepVolume,
+                FootstepState.Run => runFootstepVolume,
+                _ => walkFootstepVolume
+            };
+            footstepAudioSource.PlayOneShot(clip, volume);
         }
 
         private void HandleCrouch()

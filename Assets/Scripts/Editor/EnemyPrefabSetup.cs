@@ -37,9 +37,12 @@ namespace PrisaControlada.Editor
             Material bodyMat = GetOrCreateMaterial($"{MaterialFolder}/{type}Body.mat", EnemyFactory.GetColor(type));
             Material lensMat = GetOrCreateMaterial($"{MaterialFolder}/{type}Lens.mat", Color.white);
 
+            // Blind y Runner ya no usan capsula ni Lenses (mesh FBX del prototipo).
+            bool usesPrototypeModel = type == EnemyType.Blind || type == EnemyType.Runner;
+
             foreach (MeshRenderer renderer in enemy.GetComponentsInChildren<MeshRenderer>())
             {
-                if (renderer.name == "Lenses")
+                if (!usesPrototypeModel && renderer.name == "Lenses")
                     renderer.sharedMaterial = lensMat;
                 else
                     renderer.sharedMaterial = bodyMat;

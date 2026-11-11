@@ -18,6 +18,13 @@ namespace PrisaControlada.Player
         [SerializeField] private InputActionAsset inputActions;
         [SerializeField] private WeaponVFX weaponVFX;
 
+        [Header("Audio - Weapon")]
+        [SerializeField] private AudioSource weaponAudioSource;
+        [SerializeField] private AudioClip shootRevolverClip;
+        [SerializeField] private AudioClip noAmmoClip;
+        [SerializeField, Range(0f, 1f)] private float shootRevolverVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float noAmmoVolume = 1f;
+
         [Header("Weapon Stats")]
         [SerializeField] private float damage = 35f;
         [SerializeField] private float fireRate = 1.5f;
@@ -178,6 +185,11 @@ namespace PrisaControlada.Player
             if (bulletPickupPrefab == null)
                 bulletPickupPrefab = Resources.Load<GameObject>("Items/BulletPickup");
 
+            if (weaponAudioSource == null)
+                weaponAudioSource = GetComponent<AudioSource>();
+            if (weaponAudioSource == null)
+                weaponAudioSource = gameObject.AddComponent<AudioSource>();
+
             if (inputActions != null)
             {
                 _attackAction = inputActions.FindAction("Attack");
@@ -331,7 +343,7 @@ namespace PrisaControlada.Player
 
         private static bool HasParam(Animator anim, string paramName)
         {
-            if (anim == null || anim.runtimeAnimatorController == null) return false;
+            if (!CanAnimate(anim)) return false;
             foreach (AnimatorControllerParameter p in anim.parameters)
                 if (p.name == paramName) return true;
             return false;
@@ -339,33 +351,42 @@ namespace PrisaControlada.Player
 
         private void SetBoolBoth(int param, bool value)
         {
-            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.SetBool(param, value);
-            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.SetBool(param, value);
+            if (CanAnimate(weaponAnimator)) weaponAnimator.SetBool(param, value);
+            if (CanAnimate(weaponArmAnimator)) weaponArmAnimator.SetBool(param, value);
         }
 
         private void SetFloatBoth(int param, float value, float dampTime, float deltaTime)
         {
-            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.SetFloat(param, value, dampTime, deltaTime);
-            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.SetFloat(param, value, dampTime, deltaTime);
+            if (CanAnimate(weaponAnimator)) weaponAnimator.SetFloat(param, value, dampTime, deltaTime);
+            if (CanAnimate(weaponArmAnimator)) weaponArmAnimator.SetFloat(param, value, dampTime, deltaTime);
         }
 
         private void SetTriggerBoth(int param)
         {
-            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.SetTrigger(param);
-            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.SetTrigger(param);
+            if (CanAnimate(weaponAnimator)) weaponAnimator.SetTrigger(param);
+            if (CanAnimate(weaponArmAnimator)) weaponArmAnimator.SetTrigger(param);
         }
 
         private void ResetTriggerBoth(int param)
         {
-            if (weaponAnimator != null && weaponAnimator.runtimeAnimatorController != null) weaponAnimator.ResetTrigger(param);
-            if (weaponArmAnimator != null && weaponArmAnimator.runtimeAnimatorController != null) weaponArmAnimator.ResetTrigger(param);
+            if (CanAnimate(weaponAnimator)) weaponAnimator.ResetTrigger(param);
+            if (CanAnimate(weaponArmAnimator)) weaponArmAnimator.ResetTrigger(param);
         }
 
         private static void PlayClip(Animator anim, string state, float normalizedTime = 0f, float speed = 1f)
         {
-            if (anim == null || anim.runtimeAnimatorController == null) return;
+            if (!CanAnimate(anim)) return;
             anim.speed = speed;
             anim.Play(state, 0, normalizedTime);
+        }
+
+        // Un Animator desactivado (arma guardada) o sin controller tira errores
+        // "Animator is not playing an AnimatorController" / "Game object with animator is inactive".
+        private static bool CanAnimate(Animator anim)
+        {
+            return anim != null
+                && anim.runtimeAnimatorController != null
+                && anim.isActiveAndEnabled;
         }
 
         private void UpdateAim(bool canControl)
@@ -440,6 +461,9 @@ namespace PrisaControlada.Player
             _nextFireTime = Time.time + 1f / fireRate;
             Debug.Log("<color=#ff7777>[Weapon] Disparo en vacio (sin balas): tambor gira, SIN recoil. Presiona R para recargar</color>");
             LogAmmo("");
+
+            if (weaponAudioSource != null && noAmmoClip != null)
+                weaponAudioSource.PlayOneShot(noAmmoClip, noAmmoVolume);
         }
 
         private void Fire()
@@ -448,6 +472,9 @@ namespace PrisaControlada.Player
             _nextFireTime = Time.time + 1f / fireRate;
             _pendingShotTime = Time.time + shotDelay;
             Debug.Log($"<color=#77ff77>[Weapon] Disparo iniciado (animacion). Impacto en {shotDelay}s. ammo={_ammo}/{maxAmmo}</color>");
+
+            if (weaponAudioSource != null && shootRevolverClip != null)
+                weaponAudioSource.PlayOneShot(shootRevolverClip, shootRevolverVolume);
         }
 
         private void UpdatePendingShot()

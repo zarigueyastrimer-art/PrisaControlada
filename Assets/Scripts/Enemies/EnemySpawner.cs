@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using PrisaControlada.Map;
 
 namespace PrisaControlada.Enemies
 {
@@ -17,8 +18,15 @@ namespace PrisaControlada.Enemies
         [SerializeField] private EnemySpawnPoint[] spawnPoints = Array.Empty<EnemySpawnPoint>();
 
         private readonly List<EnemyBase> _spawned = new List<EnemyBase>();
+        private Transform _roomRoot;
 
         public IReadOnlyList<EnemyBase> Spawned => _spawned;
+
+        private void Awake()
+        {
+            // Cachear la raíz de la sala (el objeto con RoomDefinition)
+            _roomRoot = GetComponentInParent<RoomDefinition>()?.transform ?? transform.root;
+        }
 
         private void Start()
         {
@@ -34,6 +42,11 @@ namespace PrisaControlada.Enemies
         public EnemyBase Spawn(EnemyType type, Vector3 position)
         {
             EnemyBase enemy = EnemyFactory.Create(type, position);
+            
+            // Parentear el enemigo a la sala para que se destruya con ella
+            if (_roomRoot != null && enemy != null)
+                enemy.transform.SetParent(_roomRoot, true);
+            
             _spawned.Add(enemy);
             return enemy;
         }

@@ -81,6 +81,13 @@ namespace PrisaControlada.Player
         private int _shellsLoaded = 1;
         private int _reserveShells;
 
+        [Header("Audio - Weapon")]
+        [SerializeField] private AudioSource weaponAudioSource;
+        [SerializeField] private AudioClip shootShotgunClip;
+        [SerializeField] private AudioClip noAmmoClip;
+        [SerializeField, Range(0f, 1f)] private float shootShotgunVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float noAmmoVolume = 1f;
+
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int ReloadingHash = Animator.StringToHash("Reloading");
         private static readonly int AimHash = Animator.StringToHash("Aim");
@@ -95,6 +102,11 @@ namespace PrisaControlada.Player
                 _aimAction = inputActions.FindAction("Aim");
             }
             _punchCamera = viewCamera != null ? viewCamera.GetComponent<PlayerCamera>() : null;
+
+            if (weaponAudioSource == null)
+                weaponAudioSource = GetComponent<AudioSource>();
+            if (weaponAudioSource == null)
+                weaponAudioSource = gameObject.AddComponent<AudioSource>();
         }
 
         private void OnEnable()
@@ -202,6 +214,10 @@ namespace PrisaControlada.Player
                     if (_shellsLoaded <= 0)
                     {
                         Debug.Log("<color=#ff7777>[Shotgun] Vacia: apreta R para recargar.</color>");
+
+                        if (weaponAudioSource != null && noAmmoClip != null)
+                            weaponAudioSource.PlayOneShot(noAmmoClip, noAmmoVolume);
+
                         return;
                     }
                     _shooting = true;
@@ -445,6 +461,9 @@ namespace PrisaControlada.Player
             float spreadDeg = spread * (aiming ? aimSpreadMultiplier : 1f);
 
             if (weaponVFX != null) weaponVFX.PlayMuzzle();
+
+            if (weaponAudioSource != null && shootShotgunClip != null)
+                weaponAudioSource.PlayOneShot(shootShotgunClip, shootShotgunVolume);
 
             for (int i = 0; i < pellets; i++)
             {

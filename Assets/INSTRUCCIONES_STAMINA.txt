@@ -1,0 +1,57 @@
+=====================================
+INSTRUCCIONES - BARRA DE ESTAMINA
+=====================================
+
+PARA CONFIGURAR LA BARRA DE ESTAMINA MANUALMENTE:
+
+1. En la jerarquía, selecciona el objeto del jugador
+2. Crea los siguientes objetos como hijos:
+
+   - StaminaBar
+     - PlayerStaminaHUD (script)
+     
+     - StaminaBar_Background (Image)
+       - SizeDelta: 250 x 30
+       - Color: Negro (0,0,0) con alpha 0.5
+       - Anchor: 0.5, 0.95 (centro superior)
+       - Posicion Anchored: 0, -50
+       
+       - StaminaBar_Fill (Image) 
+         - SizeDelta: 200 x 20
+         - Tipo: Filled
+         - Metodo: Horizontal
+         - Origen: Left (0)
+         - Pivot: 0, 0.5 (izquierda)
+         - Color: Verde
+         - Fill Amount: 1.0
+
+3. Arrastra las referencias en el script PlayerStaminaHUD:
+   - Stamina Bar Fill -> StaminaBar_Fill
+   - Stamina Bar Background -> StaminaBar_Background
+
+4. ¡Listo! La barra de stamina se mostrará en pantalla.
+
+=====================================
+CONFIGURACION DESDE EL EDITOR:
+=====================================
+
+1. En la escena, con el jugador seleccionado
+2. Menú: Tools > Player > Setup Stamina HUD
+3. Configura manualmente los componentes UI según las instrucciones de arriba
+
+=====================================
+PARAMETROS CONFIGURABLES:
+=====================================
+
+EN PlayerController (del jugador):
+- Stamina Drain Rate: 25 (consumo por segundo corriendo)
+- Stamina Regen Rate: 15 (regeneracion por segundo)
+- Stamina Regen Delay: 1.5 (espera antes de regenerar)
+
+EN PlayerStaminaHUD:
+- Bar Alpha: 0.85 (transparencia)
+- Low Stamina Threshold: 0.25 (25% = rojo)
+- Normal/Low Stamina Color: colores de la barra
+
+NOTA: La barra NO se debe agregar como hijo de Canvas existente.
+      Debe estar como hijo del jugador para que se actualice correctamente.

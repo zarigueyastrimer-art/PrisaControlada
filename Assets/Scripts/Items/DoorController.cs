@@ -1,4 +1,6 @@
+using PrisaControlada.Player;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace PrisaControlada.Items
 {
@@ -16,12 +18,16 @@ namespace PrisaControlada.Items
         [Tooltip("Extremo del panel donde esta la bisagra: +1 = borde +X, -1 = borde -X. Fija, no cambia con el jugador.")]
         [SerializeField] private float hingeSide = 1f;
 
+        [Header("NavMesh")]
+        [Tooltip("Obstaculo de la puerta. SIN carve: la boca del NavMesh queda horneada siempre. Cerrada habilitado (los agentes no pueden pasar hasta que se abre); abierta deshabilitado. Si esta vacio se busca en los hijos de doorPanel.")]
+        [SerializeField] private NavMeshObstacle doorObstacle;
+
         private Quaternion _targetRotation = Quaternion.identity;
         private bool _isOpen;
 
         public bool IsOpen => _isOpen;
 
-        private void Awake()
+        protected virtual void Awake()
         {
             if (player == null)
             {
@@ -29,6 +35,11 @@ namespace PrisaControlada.Items
                 if (playerGo != null)
                     player = playerGo.transform;
             }
+
+            if (doorObstacle == null && doorPanel != null)
+                doorObstacle = doorPanel.GetComponentInChildren<NavMeshObstacle>(true);
+
+            ApplyNavMeshBlocker();
         }
 
         public bool IsDoorHit(Collider hitCollider)
@@ -43,6 +54,13 @@ namespace PrisaControlada.Items
             }
 
             return false;
+        }
+
+        // Punto de entrada de interaccion. LockedDoor / CodeDoor lo sobreescriben.
+        public virtual bool TryInteract(InventoryController inventory)
+        {
+            Toggle();
+            return true;
         }
 
         public void Toggle()
@@ -60,6 +78,23 @@ namespace PrisaControlada.Items
             }
 
             _isOpen = !_isOpen;
+            ApplyNavMeshBlocker();
+        }
+
+        // La puerta NUNCA carvea el NavMesh (la boca siempre queda horneada,
+        // asi que no hace falta rehornear al abrir ni al cerrar), pero el
+        // obstacle sigue habilitado mientras esta cerrada: sin carve, el
+        // agente encamina hacia la boca pero lo evita y no puede pasar hasta
+        // que se abre (Unity: "Without carving, the agent will head for the
+        // gap but won't be able to pass until the obstacle is clear"). Al
+        // abrir se deshabilita y los enemigos cruzan libre.
+        private void ApplyNavMeshBlocker()
+        {
+            if (doorObstacle == null)
+                return;
+
+            doorObstacle.carving = false;
+            doorObstacle.enabled = !_isOpen;
         }
 
         private float ComputeSwingSide()

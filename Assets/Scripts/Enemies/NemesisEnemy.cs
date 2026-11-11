@@ -18,6 +18,14 @@ namespace PrisaControlada.Enemies
         private Vector3 _target;
         private float _waitUntil;
 
+        [Header("Audio (3D loop)")]
+        [SerializeField] private AudioClip nemesisClip;
+        [SerializeField, Range(0f, 1f)] private float nemesisVolume = 1f;
+        [SerializeField] private float nemesisMinDistance = 2f;
+        [SerializeField] private float nemesisMaxDistance = 25f;
+
+        private AudioSource _nemesisSource;
+
         public float Progress
         {
             get => _progress;
@@ -27,6 +35,18 @@ namespace PrisaControlada.Enemies
         protected override void Awake()
         {
             base.Awake();
+            _nemesisSource = gameObject.AddComponent<AudioSource>();
+            _nemesisSource.playOnAwake = false;
+            _nemesisSource.loop = true;
+            _nemesisSource.spatialBlend = 1f;
+            _nemesisSource.rolloffMode = AudioRolloffMode.Linear;
+            _nemesisSource.minDistance = nemesisMinDistance;
+            _nemesisSource.maxDistance = nemesisMaxDistance;
+            _nemesisSource.dopplerLevel = 0f;
+            _nemesisSource.volume = nemesisVolume;
+            _nemesisSource.clip = nemesisClip;
+            if (nemesisClip != null)
+                _nemesisSource.Play();
         }
 
         public override void ApplyDefaultStats()

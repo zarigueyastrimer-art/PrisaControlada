@@ -4,68 +4,46 @@ using UnityEngine.AI;
 
 namespace PrisaControlada.Core
 {
+    // Horno de NavMesh en runtime.
+    //
+    // Se hornea al iniciar (solo lo que hay en escena: el hub) y despues lo
+    // vuelve a llamar ProceduralMapGenerator.RebakeGlobal() cada vez que la
+    // ventana de salas cambia (spawn sincrono / despawn al frame siguiente),
+    // para que salas + losas de umbral de puertas queden en UNA sola malla.
+    // Antes se rehorneaba cada 2 segundos aunque nada se hubiera movido: eso
+    // generaba ~34.000 warnings de "does not allow read access" por Play y
+    // tirones mientras se jugaba.
+    //
+    // La capa DOOR (3) no esta en la mascara del NavMeshSurface (1335), asi
+    // que abrir o cerrar puertas no necesita rehornear. Si en el futuro algo
+    // si lo necesita, llamar a Rebake() desde ese script.
     [RequireComponent(typeof(NavMeshSurface))]
     public class RuntimeNavMesh : MonoBehaviour
     {
-        [SerializeField] private float updateInterval = 2f;
-
         private NavMeshSurface _surface;
-        private float _nextUpdateTime;
-        private AsyncOperation _pendingUpdate;
-        private int _lastWorldHash;
 
         private void Awake()
         {
             _surface = GetComponent<NavMeshSurface>();
 
             _surface.collectObjects = CollectObjects.All;
-            _surface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.RenderMeshes;
+            _surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
             _surface.ignoreNavMeshAgent = true;
             _surface.ignoreNavMeshObstacle = true;
 
-            _lastWorldHash = ComputeWorldHash();
+            Rebake();
+        }
+
+        // Rehornea con la geometria actual de la escena.
+        public void Rebake()
+        {
+            if (_surface == null)
+                _surface = GetComponent<NavMeshSurface>();
+
+            if (_surface == null)
+                return;
+
             _surface.BuildNavMesh();
-            _nextUpdateTime = Time.time + updateInterval;
-        }
-
-        private void Update()
-        {
-            if (_surface == null || _surface.navMeshData == null) return;
-
-            if (_pendingUpdate != null && !_pendingUpdate.isDone) return;
-
-            if (Time.time < _nextUpdateTime) return;
-            _nextUpdateTime = Time.time + updateInterval;
-
-            // Solo se reconstruye si la geometria que el NavMeshSurface hornea
-            // (renderers que no son agentes) cambio. Asi los agentes no se
-            // desplazan mientras el mundo esta quieto.
-            int hash = ComputeWorldHash();
-            if (hash == _lastWorldHash) return;
-            _lastWorldHash = hash;
-
-            _pendingUpdate = _surface.UpdateNavMesh(_surface.navMeshData);
-        }
-
-        private int ComputeWorldHash()
-        {
-            int hash = 17;
-
-            MeshRenderer[] renderers = FindObjectsOfType<MeshRenderer>();
-            foreach (MeshRenderer r in renderers)
-            {
-                if (r == null || !r.enabled || !r.gameObject.activeInHierarchy) continue;
-                if (r.GetComponentInParent<NavMeshAgent>() != null) continue;
-                if (!r.gameObject.isStatic) continue;
-
-                Transform t = r.transform;
-                hash = hash * 31 + t.position.GetHashCode();
-                hash = hash * 31 + t.rotation.GetHashCode();
-                hash = hash * 31 + t.lossyScale.GetHashCode();
-                hash = hash * 31 + r.bounds.GetHashCode();
-            }
-
-            return hash;
         }
     }
 }

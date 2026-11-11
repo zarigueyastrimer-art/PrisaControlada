@@ -42,6 +42,13 @@ namespace PrisaControlada.Player
         public float aimFov = 55f;
         public float fovSmoothTime = 0.15f;
 
+        [Header("Audio - Weapon")]
+        [SerializeField] private AudioSource weaponAudioSource;
+        [SerializeField] private AudioClip shootGlockClip;
+        [SerializeField] private AudioClip noAmmoClip;
+        [SerializeField, Range(0f, 1f)] private float shootGlockVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float noAmmoVolume = 1f;
+
         // --- Disparo (hitscan / line trace) ---
         [Header("Disparo (hitscan)")]
         [SerializeField] public WeaponVFX weaponVFX;
@@ -110,6 +117,11 @@ namespace PrisaControlada.Player
             _on = false;
             _magazine = startMagazine;
             _reserve = startReserve;
+
+            if (weaponAudioSource == null)
+                weaponAudioSource = GetComponent<AudioSource>();
+            if (weaponAudioSource == null)
+                weaponAudioSource = gameObject.AddComponent<AudioSource>();
         }
 
         public int Magazine => _magazine;
@@ -120,6 +132,8 @@ namespace PrisaControlada.Player
         // True mientras dispara/recarga/equipa/apunta: asi el InventoryController no
         // deja guardar ni tirar el arma en medio de una accion.
         public bool IsBusy => _busy != Busy.None || _reloadPhase != ReloadPhase.None || _getting || _aiming;
+
+        public bool IsEquipped => _on;
         public Camera ViewCamera => _viewCamera;
 
         void LogAmmo(string tag)
@@ -250,6 +264,10 @@ namespace PrisaControlada.Player
                     {
                         Debug.Log("<color=#ff7777>[Glock] Cargador vacio: recarga con R.</color>");
                         LogAmmo("Cargador vacio");
+
+                        if (weaponAudioSource != null && noAmmoClip != null)
+                            weaponAudioSource.PlayOneShot(noAmmoClip, noAmmoVolume);
+
                         return;
                     }
                     // Si esta apuntando, disparo aim (brazo + arma); sino, disparo normal.
@@ -515,6 +533,9 @@ namespace PrisaControlada.Player
                 if (weaponVFX != null) weaponVFX.DrawLineTrace(rayOrigin, endPoint, lineTraceColor, 1f);
                 else Debug.DrawLine(rayOrigin, endPoint, lineTraceColor, 0.1f);
             }
+
+            if (weaponAudioSource != null && shootGlockClip != null)
+                weaponAudioSource.PlayOneShot(shootGlockClip, shootGlockVolume);
 
             // Recoil de camara (glok: bajo).
             if (_playerCamera != null)

@@ -1181,6 +1181,11 @@ MonoBehaviour:
   normalFov: 70
   aimFov: 55
   fovSmoothTime: 0.15
+  weaponAudioSource: {fileID: 0}
+  shootGlockClip: {fileID: 8300000, guid: ed56bf179ce27e34b875529cf63a37e8, type: 3}
+  noAmmoClip: {fileID: 8300000, guid: e247d04c80b4fb94da67fd45beff6004, type: 3}
+  shootGlockVolume: 1
+  noAmmoVolume: 1
   weaponVFX: {fileID: 8265949127544255857}
   damage: 25
   spread: 2

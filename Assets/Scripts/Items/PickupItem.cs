@@ -28,6 +28,11 @@ namespace PrisaControlada.Items
 
         public virtual Vector3 PreviewScale => Vector3.one;
 
+        // Offset adicional cuando el item esta en la mano (suma al holdOffset
+        // del InventoryController). Permite que cada item se ajuste en altura
+        // sin tocar la posicion global de la mano.
+        public virtual Vector3 HandOffset => Vector3.zero;
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
@@ -101,7 +106,7 @@ namespace PrisaControlada.Items
 
             transform.position += playerDelta;
 
-            Vector3 target = _holder.position + _holder.rotation * _holdOffset;
+            Vector3 target = _holder.position + _holder.rotation * (_holdOffset + HandOffset);
             Vector3 toTarget = target - transform.position;
 
             if (toTarget.magnitude > maxHoldDistance)
@@ -117,7 +122,7 @@ namespace PrisaControlada.Items
         private void ClampAgainstWalls()
         {
             Transform eye = _holder.parent != null ? _holder.parent : _holder;
-            Vector3 target = _holder.position + _holder.rotation * _holdOffset;
+            Vector3 target = _holder.position + _holder.rotation * (_holdOffset + HandOffset);
             Vector3 dir = target - eye.position;
             float dist = dir.magnitude;
             if (dist < 0.01f) return;

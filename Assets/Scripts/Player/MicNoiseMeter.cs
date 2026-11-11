@@ -19,6 +19,8 @@ namespace PrisaControlada.Player
         [Header("Mic Settings")]
         [SerializeField] private int sampleRate = 44100;
         [SerializeField] private float sampleWindowSeconds = 0.1f;
+        [Tooltip("Si está activo, el micrófono empieza encendido al iniciar el juego (la tecla M sigue sirviendo para apagarlo/encenderlo)")]
+        [SerializeField] private bool startActive = true;
 
         [Header("Thresholds")]
         [SerializeField] private float loudThreshold = 0.08f;
@@ -115,8 +117,22 @@ namespace PrisaControlada.Player
                 }
             }
 
-            if (canvas != null)
+            if (startActive)
+            {
+                // Empezar con el micrófono encendido (si hay dispositivo y permiso).
+                if (Microphone.devices.Length > 0)
+                {
+                    StartMic();
+                    _isActive = _micClip != null;
+                }
+
+                if (canvas != null)
+                    canvas.gameObject.SetActive(_isActive);
+            }
+            else if (canvas != null)
+            {
                 canvas.gameObject.SetActive(false);
+            }
 
             ResetPostFX();
         }

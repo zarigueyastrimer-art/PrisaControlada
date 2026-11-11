@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8512386242675846729}
   - component: {fileID: 1102743620926485309}
   - component: {fileID: 6115592975977409377}
+  - component: {fileID: 8100000000000000003}
   m_Layer: 0
   m_Name: ShotgunPickup
   m_TagString: Untagged
@@ -102,6 +103,27 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.07930994, y: 0.2877814, z: 0.7546611}
+  m_Center: {x: -0.0016951561, y: -0.04356523, z: -0.03891301}
+--- !u!65 &8100000000000000003
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6421093951619793568}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.27930994, y: 0.4877814, z: 0.9546611}
   m_Center: {x: -0.0016951561, y: -0.04356523, z: -0.03891301}
 --- !u!1001 &27911470404241266
 PrefabInstance:

@@ -19,6 +19,14 @@ namespace PrisaControlada.Player
         [SerializeField] private Vector3 holdOffset = new Vector3(0.35f, -0.35f, 0.6f);
         [SerializeField] private float throwForce = 2f;
 
+        [Header("Audio")]
+        [SerializeField] private AudioSource pickupAudioSource;
+        [SerializeField] private AudioClip pickupClip;
+        [SerializeField] private AudioClip pickupGunClip;
+        [SerializeField] private AudioClip equipClip;
+        [SerializeField, Range(0f, 1f)] private float pickupVolume = 1f;
+        [SerializeField, Range(0f, 1f)] private float equipVolume = 1f;
+
         private InputAction _interactAction;
         private InputAction _slot1Action;
         private InputAction _slot2Action;
@@ -27,15 +35,55 @@ namespace PrisaControlada.Player
         private readonly PickupItem[] _slots = new PickupItem[SlotCount];
         private PickupItem _heldItem;
         private Transform _holdPoint;
+        private bool _interactBlocked;
 
         public PickupItem HeldItem => _heldItem;
 
         public event Action InventoryChanged;
 
+        public void SetInteractBlocked(bool blocked)
+        {
+            _interactBlocked = blocked;
+        }
+
+        public void ConsumeHeldItem()
+        {
+            if (_heldItem == null) return;
+
+            PickupItem item = _heldItem;
+            _heldItem = null;
+            Destroy(item.gameObject);
+            InventoryChanged?.Invoke();
+        }
+
         public PickupItem GetSlotItem(int index)
         {
             if (index < 0 || index >= SlotCount) return null;
             return _slots[index];
+        }
+
+        private void PlayPickupSound(bool isWeapon)
+        {
+            if (pickupAudioSource == null) return;
+
+            AudioClip clip = isWeapon ? pickupGunClip : pickupClip;
+            if (clip == null) return;
+
+            pickupAudioSource.clip = clip;
+            pickupAudioSource.loop = false;
+            pickupAudioSource.volume = pickupVolume;
+            pickupAudioSource.PlayOneShot(clip, pickupVolume);
+        }
+
+        private void PlayEquipSound()
+        {
+            if (pickupAudioSource == null) return;
+            if (equipClip == null) return;
+
+            pickupAudioSource.clip = equipClip;
+            pickupAudioSource.loop = false;
+            pickupAudioSource.volume = equipVolume;
+            pickupAudioSource.PlayOneShot(equipClip, equipVolume);
         }
 
         private void Awake()
@@ -52,6 +100,11 @@ namespace PrisaControlada.Player
                 _holdPoint.SetParent(viewCamera.transform, false);
                 _holdPoint.localPosition = holdOffset;
             }
+
+            if (pickupAudioSource == null)
+                pickupAudioSource = GetComponent<AudioSource>();
+            if (pickupAudioSource == null)
+                pickupAudioSource = gameObject.AddComponent<AudioSource>();
 
             if (inputActions != null)
             {
@@ -80,6 +133,8 @@ namespace PrisaControlada.Player
 
         private void Update()
         {
+            if (_interactBlocked) return;
+
             if (_interactAction != null && _interactAction.WasPressedThisFrame())
                 TryGrab();
 
@@ -114,11 +169,25 @@ namespace PrisaControlada.Player
                 return;
             }
 
+            NoteItem note = hit.collider.GetComponentInParent<NoteItem>();
+            if (note != null)
+            {
+                note.TryRead();
+                return;
+            }
+
+            AudioTrigger audioTrigger = hit.collider.GetComponentInParent<AudioTrigger>();
+            if (audioTrigger != null)
+            {
+                audioTrigger.TryPlay();
+                return;
+            }
+
             DoorController door = hit.collider.GetComponentInParent<DoorController>();
             if (door != null)
             {
                 if (door.IsDoorHit(hit.collider))
-                    door.Toggle();
+                    door.TryInteract(this);
                 return;
             }
 
@@ -130,6 +199,7 @@ namespace PrisaControlada.Player
                     Debug.Log($"<color=#77ff77>[AmmoPickup] Municion agarrada: +{ammo.Amount} balas externas. Item destruido.</color>");
                     Destroy(ammo.gameObject);
                 }
+                PlayPickupSound(false);
                 InventoryChanged?.Invoke();
                 return;
             }
@@ -142,6 +212,7 @@ namespace PrisaControlada.Player
                     Debug.Log($"<color=#77ff77>[ShotgunAmmoPickup] Caja de balas agarrada: +{shellBox.Amount} cartuchos. Item destruido.</color>");
                     Destroy(shellBox.gameObject);
                 }
+                PlayPickupSound(false);
                 InventoryChanged?.Invoke();
                 return;
             }
@@ -154,6 +225,7 @@ namespace PrisaControlada.Player
                     Debug.Log($"<color=#77ff77>[GlockAmmoPickup] Caja de balas de glock agarrada: +{glockBox.Amount} balas. Item destruido.</color>");
                     Destroy(glockBox.gameObject);
                 }
+                PlayPickupSound(false);
                 InventoryChanged?.Invoke();
                 return;
             }
@@ -166,6 +238,7 @@ namespace PrisaControlada.Player
                     Debug.Log($"<color=#77ff77>[GlockMagazinePickup] Cargador de glock agarrado: +{glockMag.Amount} balas a la reserva. Item destruido.</color>");
                     Destroy(glockMag.gameObject);
                 }
+                PlayPickupSound(false);
                 InventoryChanged?.Invoke();
                 return;
             }
@@ -177,6 +250,7 @@ namespace PrisaControlada.Player
             {
                 TakeToHand(item);
                 InventoryChanged?.Invoke();
+                PlayPickupSound(item is WeaponPickup || item is GlockGroundPickup);
             }
         }
 
@@ -205,6 +279,8 @@ namespace PrisaControlada.Player
             {
                 _slots[index] = null;
                 TakeToHand(inSlot);
+                if (inSlot is WeaponPickup || inSlot is GlockGroundPickup)
+                    PlayEquipSound();
             }
 
             InventoryChanged?.Invoke();

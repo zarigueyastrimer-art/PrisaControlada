@@ -23,10 +23,39 @@ namespace PrisaControlada.Enemies
         [SerializeField] protected float damageHeight = 1.1f;
         [SerializeField] private bool showAttackDebug = true;
 
+        [Header("Headshot")]
+        [SerializeField] protected float headshotRadius = 0.2f;
+        [SerializeField] protected string headBoneName = "mixamorig:Head";
+
         [Header("Vision")]
         [SerializeField] protected float viewRange = 16f;
         [SerializeField, Range(0f, 360f)] protected float viewAngle = 100f;
         [SerializeField] protected LayerMask visionMask = ~0;
+
+        [Header("Aggro (reacciona al recibir daño)")]
+        [Tooltip("Si está activo, al recibir daño el enemigo persigue al jugador automáticamente")]
+        [SerializeField] protected bool aggroOnDamage = true;
+        [Tooltip("Segundos en modo aggro después de recibir un golpe (cada golpe renueva el tiempo)")]
+        [SerializeField] protected float aggroDuration = 8f;
+
+        [Header("Audio (3D loop)")]
+        [SerializeField] protected AudioClip heartbeatClip;
+        [SerializeField, Range(0f, 1f)] protected float heartbeatVolume = 1f;
+        [SerializeField] protected float heartbeatMinDistance = 2f;
+        [SerializeField] protected float heartbeatMaxDistance = 25f;
+        [SerializeField] protected float heartbeatRolloff = 2f;
+
+        [Header("Footsteps (3D)")]
+        [SerializeField] protected AudioClip[] footstepClips;
+        [SerializeField, Range(0f, 1f)] protected float footstepVolume = 1f;
+        [SerializeField] protected float footstepInterval = 0.5f;
+        [SerializeField] protected float footstepMinDistance = 2f;
+        [SerializeField] protected float footstepMaxDistance = 15f;
+
+        protected AudioSource HeartbeatSource;
+        protected AudioSource FootstepSource;
+        protected Transform PlayerTransform;
+        protected float _nextFootstepTime;
 
         protected NavMeshAgent Agent;
         protected PlayerController Player;
@@ -37,7 +66,10 @@ namespace PrisaControlada.Enemies
         protected float NextAttackTime;
         protected bool IsDead;
 
-        private bool _isAttacking;
+        // Hasta cuándo permanece en modo aggro (recibió daño del jugador).
+        protected float _aggroUntilTime = float.NegativeInfinity;
+
+        protected bool _isAttacking;
         private float _attackTimer;
         private GameObject _activeDamageCollider;
 
@@ -52,6 +84,31 @@ namespace PrisaControlada.Enemies
             Agent = GetComponent<NavMeshAgent>();
             Agent.updateRotation = false;
             CurrentHealth = maxHealth;
+
+            HeartbeatSource = GetComponent<AudioSource>();
+            if (HeartbeatSource == null)
+                HeartbeatSource = gameObject.AddComponent<AudioSource>();
+            HeartbeatSource.playOnAwake = false;
+            HeartbeatSource.loop = true;
+            HeartbeatSource.spatialBlend = 1f;
+            HeartbeatSource.rolloffMode = AudioRolloffMode.Linear;
+            HeartbeatSource.minDistance = heartbeatMinDistance;
+            HeartbeatSource.maxDistance = heartbeatMaxDistance;
+            HeartbeatSource.dopplerLevel = 0f;
+            HeartbeatSource.volume = heartbeatVolume;
+            HeartbeatSource.clip = heartbeatClip;
+            if (heartbeatClip != null)
+                HeartbeatSource.Play();
+
+            FootstepSource = gameObject.AddComponent<AudioSource>();
+            FootstepSource.playOnAwake = false;
+            FootstepSource.loop = false;
+            FootstepSource.spatialBlend = 1f;
+            FootstepSource.rolloffMode = AudioRolloffMode.Linear;
+            FootstepSource.minDistance = footstepMinDistance;
+            FootstepSource.maxDistance = footstepMaxDistance;
+            FootstepSource.dopplerLevel = 0f;
+            FootstepSource.volume = footstepVolume;
         }
 
         protected virtual void Start()
@@ -70,6 +127,29 @@ namespace PrisaControlada.Enemies
         protected virtual void Update()
         {
             UpdateAttack();
+            UpdateFootsteps();
+        }
+
+        protected void UpdateFootsteps()
+        {
+            if (IsDead || Agent == null || !Agent.isOnNavMesh) return;
+
+            float speed = Agent.velocity.magnitude;
+            if (speed < 0.1f) return;
+
+            if (Time.time >= _nextFootstepTime)
+            {
+                PlayFootstep();
+                _nextFootstepTime = Time.time + footstepInterval;
+            }
+        }
+
+        protected void PlayFootstep()
+        {
+            if (FootstepSource == null || footstepClips == null || footstepClips.Length == 0) return;
+
+            var clip = footstepClips[Random.Range(0, footstepClips.Length)];
+            FootstepSource.PlayOneShot(clip, footstepVolume);
         }
 
         protected virtual void OnDestroy() { }
@@ -78,9 +158,51 @@ namespace PrisaControlada.Enemies
         {
             if (IsDead || amount <= 0) return;
 
+            // Al recibir daño el enemigo sabe dónde está el jugador y lo persigue,
+            // aunque esté por detrás o fuera de su campo de visión.
+            if (aggroOnDamage)
+                _aggroUntilTime = Time.time + aggroDuration;
+
+            // Headshot: si el hit point esta cerca del hueso de la cabeza, duplica el daño.
+            if (IsHeadshot(hitPoint))
+                amount *= 2;
+
             CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
             if (CurrentHealth <= 0)
                 Die();
+        }
+
+        protected bool IsHeadshot(Vector3 hitPoint)
+        {
+            Transform head = FindHeadBone();
+            if (head == null) return false;
+            return Vector3.Distance(hitPoint, head.position) <= headshotRadius;
+        }
+
+        protected Transform FindHeadBone()
+        {
+            Transform body = transform.Find("Body");
+            if (body == null)
+            {
+                Debug.LogWarning($"[Runner] FindHeadBone: no se encontró hijo 'Body' en {transform.name}");
+                return null;
+            }
+            foreach (Transform t in body.GetComponentsInChildren<Transform>())
+            {
+                if (t.name == headBoneName) return t;
+            }
+            // Fallback: buscar cualquier hueso llamado "Head"
+            foreach (Transform t in body.GetComponentsInChildren<Transform>())
+            {
+                if (t.name == "Head") return t;
+            }
+            // Fallback: cualquier transform que contenga "Head"
+            foreach (Transform t in body.GetComponentsInChildren<Transform>())
+            {
+                if (t.name.Contains("Head")) return t;
+            }
+            Debug.LogWarning($"[Runner] FindHeadBone: no se encontró hueso '{headBoneName}' ni 'Head' dentro de Body");
+            return null;
         }
 
         protected virtual void Die()
@@ -112,6 +234,21 @@ namespace PrisaControlada.Enemies
             return true;
         }
 
+        // Verdadero mientras el enemigo esté en modo aggro (recibió daño recientemente).
+        protected bool IsAggroed => Time.time < _aggroUntilTime;
+
+        protected bool PlayerCloseEnough()
+        {
+            if (Player == null) return false;
+            return Vector3.Distance(transform.position, Player.transform.position) <= attackRange;
+        }
+
+        // Detección completa: lo ve, está a distancia de ataque o está en modo aggro.
+        protected bool PlayerDetected()
+        {
+            return IsAggroed || CanSeePlayer() || PlayerCloseEnough();
+        }
+
         protected bool EnsureOnNavMesh()
         {
             if (Agent == null) return false;
@@ -132,7 +269,7 @@ namespace PrisaControlada.Enemies
 
             if (_isAttacking)
             {
-                Agent.isStopped = true;
+                if (Agent.isOnNavMesh) Agent.isStopped = true;
                 return;
             }
 
@@ -158,7 +295,7 @@ namespace PrisaControlada.Enemies
 
         protected void StopMoving()
         {
-            if (Agent == null) return;
+            if (Agent == null || !Agent.isOnNavMesh) return;
             Agent.isStopped = true;
             Agent.ResetPath();
         }
@@ -172,7 +309,18 @@ namespace PrisaControlada.Enemies
             {
                 _isAttacking = true;
                 _attackTimer = attackWindup;
+                TriggerAttackAnimation();
             }
+        }
+
+        // Dispara el trigger de ataque en el Animator del modelo (child "Body").
+        protected void TriggerAttackAnimation()
+        {
+            var body = transform.Find("Body");
+            if (body == null) return;
+            var animator = body.GetComponent<Animator>();
+            if (animator != null && animator.runtimeAnimatorController != null)
+                animator.SetTrigger("Attack");
         }
 
         private void UpdateAttack()
