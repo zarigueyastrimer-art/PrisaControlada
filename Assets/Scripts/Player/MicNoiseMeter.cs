@@ -216,15 +216,21 @@ namespace PrisaControlada.Player
 
         private void UpdateBar()
         {
-            if (fill == null) return;
-
-            Vector2 sd = fill.rectTransform.sizeDelta;
-            sd.x = _barWidth * _level;
-            fill.rectTransform.sizeDelta = sd;
-
             float thresholdLevel = Mathf.InverseLerp(minVolume, maxVolume, loudThreshold);
-            fill.color = _level >= thresholdLevel ? loudColor : normalColor;
 
+            // Barra visual antigua (opcional): la nueva barra vertical del
+            // microfono la dibuja MicBarHUD a partir de CurrentLevel, asi que
+            // esto solo corre si todavia queda un "fill" conectado.
+            if (fill != null)
+            {
+                Vector2 sd = fill.rectTransform.sizeDelta;
+                sd.x = _barWidth * _level;
+                fill.rectTransform.sizeDelta = sd;
+                fill.color = _level >= thresholdLevel ? loudColor : normalColor;
+            }
+
+            // Efecto postFX (colorFilter rojo + viñeta): no depende de la barra,
+            // se sigue aplicando aunque no haya ningun fill en la escena.
             float amount = _level >= thresholdLevel ? Mathf.InverseLerp(thresholdLevel, 1f, _level) : 0f;
             _postFxAmount = Mathf.SmoothDamp(_postFxAmount, amount, ref _postFxVelocity, postFxSmoothTime);
 

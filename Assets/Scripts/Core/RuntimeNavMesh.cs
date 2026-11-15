@@ -27,7 +27,15 @@ namespace PrisaControlada.Core
             _surface = GetComponent<NavMeshSurface>();
 
             _surface.collectObjects = CollectObjects.All;
-            _surface.useGeometry = NavMeshCollectGeometry.RenderMeshes;
+
+            // Usar la geometria de los colliders, no la de los MeshRenderers.
+            // Los FBX de las salas pueden tener Read/Write desactivado; al usar
+            // RenderMeshes, NavMeshBuilder intenta leer sus vertices en CPU y
+            // genera cientos de errores "does not allow read access" en cada
+            // rehornado. La fisica ya mantiene una copia accesible de la
+            // geometria para los MeshColliders, por lo que el bake funciona
+            // tanto en el Editor como en un Player.
+            _surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
             _surface.ignoreNavMeshAgent = true;
             _surface.ignoreNavMeshObstacle = true;
 

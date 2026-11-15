@@ -42,12 +42,26 @@ namespace PrisaControlada.Player
 
         private float _baseFov;
         private float _zoomVelocity;
+
+        // Estado del zoom sin arma (click derecho). Lo usa el HUD de la barra
+        // de zoom: con un arma equipada el FOV lo maneja el arma, asi que aca
+        // el zoom siempre queda en 0.
+        private bool _isZooming;
+        private float _zoomProgress;
+
         private float _nextWeaponScan;
         private WeaponController[] _weapons;
         private ShotgunToggle[] _shotguns;
         private GlockToggle[] _glocks;
 
         public bool LookEnabled => _lookEnabled;
+
+        // Zoom sin arma (click derecho manteniendo). Con un arma equipada el FOV
+        // lo maneja el arma, asi que IsZooming es false y ZoomProgress es 0.
+        public bool IsZooming => _isZooming;
+
+        // Progreso del zoom actual: 0 sin zoom, 1 con el zoom completo.
+        public float ZoomProgress => _zoomProgress;
 
         public void SetLookEnabled(bool enabled)
         {
@@ -131,17 +145,29 @@ namespace PrisaControlada.Player
         // Con un arma equipada el FOV lo maneja el arma, asi que aca no se toca.
         private void UpdateUnarmedZoom()
         {
-            if (!zoomWhenUnarmed || _cam == null) return;
+            if (!zoomWhenUnarmed || _cam == null)
+            {
+                _isZooming = false;
+                _zoomProgress = 0f;
+                return;
+            }
 
             if (AnyWeaponEquipped())
             {
                 _zoomVelocity = 0f;
+                _isZooming = false;
+                _zoomProgress = 0f;
                 return;
             }
 
             bool held = _lookEnabled
                 && Mouse.current != null
                 && Mouse.current.rightButton.isPressed;
+
+            // Estado para el HUD de la barra de zoom (solo zoom sin arma).
+            _isZooming = held;
+            _zoomProgress = Mathf.Clamp01(
+                (_baseFov - _cam.fieldOfView) / Mathf.Max(0.01f, _baseFov - zoomFov));
 
             float target = held ? zoomFov : _baseFov;
 

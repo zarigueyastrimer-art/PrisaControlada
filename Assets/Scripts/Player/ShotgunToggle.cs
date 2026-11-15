@@ -73,6 +73,12 @@ namespace PrisaControlada.Player
         private Quaternion _aimBaseLocalRot;
         private bool _aiming;
 
+        // True cuando la escopeta dejo la camara en el FOV de apuntar. Sirve
+        // para saber si, al desequipar, hay que devolver el FOV a normalFov.
+        // Si esta en false, la escopeta NO toca el FOV (asi no pelea con el
+        // zoom sin arma de PlayerCamera).
+        private bool _fovNeedsRestore;
+
         private enum ReloadPhase { None, Reloading, Holding, Getting }
         private ReloadPhase _reloadPhase = ReloadPhase.None;
         private float _phaseStartTime;
@@ -236,7 +242,26 @@ namespace PrisaControlada.Player
             if (!_equipped)
             {
                 _aiming = false;
-                UpdateAimFov();
+
+                // Sin equipped la escopeta NO es dueña del FOV: puede que el
+                // jugador este usando el zoom sin arma (que va de 70 a 45).
+                // Por eso solo lo devuelve al FOV normal si la escopeta lo dejo
+                // en el FOV de apuntar; en cuanto vuelve, deja de escribir.
+                if (_fovNeedsRestore)
+                {
+                    // Si el jugador esta haciendo zoom sin arma, manda el zoom:
+                    // la escopeta no toca el FOV para no pelearse con el.
+                    if (_punchCamera != null && _punchCamera.IsZooming)
+                    {
+                        _fovNeedsRestore = false;
+                    }
+                    else
+                    {
+                        UpdateAimFov();
+                        if (viewCamera == null || Mathf.Abs(viewCamera.fieldOfView - normalFov) <= 0.05f)
+                            _fovNeedsRestore = false;
+                    }
+                }
                 return;
             }
 
@@ -420,6 +445,11 @@ namespace PrisaControlada.Player
         private void UpdateAimFov()
         {
             if (viewCamera == null) return;
+
+            // Si estamos apuntando, la escopeta es la dueña del FOV: hay que
+            // devolverlo a normalFov cuando se desequipe.
+            if (_aiming) _fovNeedsRestore = true;
+
             float target = _aiming ? aimFov : normalFov;
             float current = viewCamera.fieldOfView;
             float next = Mathf.SmoothDamp(current, target, ref _fovVelocity, fovSmoothTime);

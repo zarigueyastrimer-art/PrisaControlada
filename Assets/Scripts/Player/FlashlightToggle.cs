@@ -16,6 +16,8 @@ namespace PrisaControlada.Player
 
         public bool IsBusy => false;
         public bool IsOn => _on && _lightOn;
+        // La linterna esta "en la mano" (equipada), con la luz apagada o prendida.
+        public bool IsEquipped => _on;
         public Camera ViewCamera { get; private set; }
 
         void Awake()

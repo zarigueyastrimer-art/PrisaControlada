@@ -95,7 +95,7 @@ namespace PrisaControlada.Editor
             GameObject nav = new GameObject("Navigation");
             NavMeshSurface surface = nav.AddComponent<NavMeshSurface>();
             surface.collectObjects = CollectObjects.All;
-            surface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.RenderMeshes;
+            surface.useGeometry = UnityEngine.AI.NavMeshCollectGeometry.PhysicsColliders;
             surface.ignoreNavMeshAgent = true;
             surface.ignoreNavMeshObstacle = true;
             nav.AddComponent<RuntimeNavMesh>();
