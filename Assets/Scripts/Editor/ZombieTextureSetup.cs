@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     public static class ZombieTextureSetup
     {
         private const string PrefabPath = "Assets/Prefabs/Enemies/ZombieEnemy.prefab";

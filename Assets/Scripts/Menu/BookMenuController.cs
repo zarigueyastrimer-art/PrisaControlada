@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Menu
 {
+    //TP2 - Francisco Larrondo
     /// <summary>
     /// Menú de libro: cada marcador (pestaña) es una página distinta.
     ///
@@ -15,6 +16,7 @@ namespace PrisaControlada.Menu
     [DisallowMultipleComponent]
     public class BookMenuController : MonoBehaviour
     {
+        //TP2 - Francisco Larrondo
         public enum TabAction
         {
             /// <summary>Sólo cambia de página.</summary>
@@ -23,6 +25,7 @@ namespace PrisaControlada.Menu
             Quit
         }
 
+        //TP2 - Francisco Larrondo
         [Serializable]
         public class Tab
         {

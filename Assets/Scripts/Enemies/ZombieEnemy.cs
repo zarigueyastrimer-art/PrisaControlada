@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     public class ZombieEnemy : EnemyBase
     {
         private enum ZombieState { Idle, Chase, Search }
@@ -39,7 +40,8 @@ namespace PrisaControlada.Enemies
         [SerializeField] private float attackAnimDuration = 1.5f;
 
         [Header("Ragdoll")]
-        [SerializeField] private float ragdollDestroyTime = 5f;
+        [Tooltip("El cadaver se elimina cuando su altura media cae por debajo de este valor.")]
+        [SerializeField] private float ragdollDespawnY = -10f;
         [SerializeField] private float ragdollImpulse = 8f;
 
         [Header("Hit Reaction")]
@@ -47,6 +49,7 @@ namespace PrisaControlada.Enemies
         [SerializeField] private float hitReactDecaySpeed = 10f;
 
         private ZombieState _state = ZombieState.Idle;
+        private bool _routeBlocked;
         private float _loseTimer;
         private float _staggerSeed;
         private float _attackAnimTimer;
@@ -57,15 +60,17 @@ namespace PrisaControlada.Enemies
         private float _searchWaitUntil;
         private Animator _animator;
 
-        private MicNoiseMeter _mic;
-        private readonly System.Collections.Generic.List<NoiseStamp> _noiseStamps = new System.Collections.Generic.List<NoiseStamp>();
+        // Huesos que forman el ragdoll. Se usan para detectar cuando el cadaver
+        // ha caido fuera del mapa; el transform raiz del enemigo no se mueve
+        // cuando los huesos pasan a ser dinamicos.
+        private readonly System.Collections.Generic.List<Transform> _ragdollBones =
+            new System.Collections.Generic.List<Transform>();
 
-        private struct NoiseStamp
-        {
-            public float time;
-            public float level;
-            public Vector3 position;
-        }
+        private MicNoiseMeter _mic;
+
+        // El struct compartido NoiseStamp conserva tiempo, nivel y posicion de
+        // cada ruido percibido sin acoplar el estado al mundo del juego.
+        private readonly System.Collections.Generic.List<NoiseStamp> _noiseStamps = new System.Collections.Generic.List<NoiseStamp>();
 
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int AttackHash = Animator.StringToHash("Attack");
@@ -195,7 +200,6 @@ namespace PrisaControlada.Enemies
 
         public override void ApplyDefaultStats()
         {
-            base.ApplyDefaultStats();
             maxHealth = 80;
             moveSpeed = 2.2f;
             contactDamage = 25;
@@ -206,13 +210,20 @@ namespace PrisaControlada.Enemies
             damageOffset = 0.95f;
             damageRadius = 0.7f;
             viewRange = 18f;
+            ResetHealthToMax();
         }
 
         protected override void Update()
         {
-            if (IsDead || Player == null) return;
+            if (IsDead) return;
 
             base.Update();
+
+            if (Player == null)
+            {
+                StopMoving();
+                return;
+            }
 
             if (_attackAnimTimer > 0f)
             {
@@ -228,16 +239,21 @@ namespace PrisaControlada.Enemies
             // Detecta al jugador: lo ve, está cerca, le pegó (aggro) o ESCUCHA su ruido.
             // Escucha depende del ruido: correr (1.0) se oye lejos, caminar (0.35) cerca,
             // agachado (0.12) nada; el micrófono aplica igual con caída por distancia.
+            // Una puerta cerrada invalida la persecucion aunque lo vea o lo oiga.
             PruneNoise();
-            bool seen = PlayerDetected() || HeardPlayer();
+            bool sensed = PlayerDetected() || HeardPlayer();
+            _routeBlocked = IsPursuitBlockedByClosedDoor();
+            bool seen = sensed && !_routeBlocked;
 
             if (seen)
             {
                 _state = ZombieState.Chase;
                 _loseTimer = 0f;
             }
-            else if (_state == ZombieState.Chase)
+            else if (_state == ZombieState.Chase && !_routeBlocked)
             {
+                // Una puerta cerrada pausa la persecucion, pero no cuenta como
+                // perder al jugador. Al abrir, el Zombie retoma el Chase.
                 _loseTimer += Time.deltaTime;
                 if (_loseTimer >= loseTargetTime)
                     StartSearch();
@@ -254,12 +270,34 @@ namespace PrisaControlada.Enemies
             switch (_state)
             {
                 case ZombieState.Chase:
-                    MoveTowards(GetStaggerTarget(Player.transform.position), moveSpeed);
+                    // La puerta puede cerrarse durante la chase; no depender
+                    // solo de la detección para detener el avance.
+                    _routeBlocked = IsPursuitBlockedByClosedDoor();
+                    if (_routeBlocked)
+                    {
+                        StopMoving();
+                        break;
+                    }
+
+                    TryMoveTowardsPlayer(GetStaggerTarget(Player.transform.position), moveSpeed);
                     TryAttack();
                     break;
                 case ZombieState.Search:
                     UpdateSearch();
                     break;
+            }
+        }
+
+        protected override void OnAttackCancelled()
+        {
+            base.OnAttackCancelled();
+
+            _attackAnimTimer = 0f;
+            _wasAttacking = false;
+            if (_animator != null)
+            {
+                _animator.ResetTrigger(AttackHash);
+                _animator.SetBool(CanExitAttackHash, true);
             }
         }
 
@@ -291,17 +329,31 @@ namespace PrisaControlada.Enemies
             if (_animator != null)
                 _animator.enabled = false;
 
+            // El cadaver no debe seguir respirando ni emitiendo sonidos de combate.
+            if (_breathingSource != null) _breathingSource.Stop();
+            if (HeartbeatSource != null) HeartbeatSource.Stop();
+            if (FootstepSource != null) FootstepSource.Stop();
+
             foreach (var c in GetComponentsInChildren<CharacterJoint>()) Destroy(c);
             foreach (var c in GetComponentsInChildren<Rigidbody>()) Destroy(c);
             foreach (var c in GetComponentsInChildren<Collider>()) Destroy(c);
             foreach (var c in GetComponentsInChildren<RagdollComponent>()) Destroy(c);
             foreach (var c in GetComponentsInChildren<Ragdoll>()) Destroy(c);
 
-            Vector3 pushDir = (transform.position - Player.transform.position).normalized;
-            pushDir.y = 0f;
+            Vector3 pushDir = transform.forward;
+            if (Player != null)
+            {
+                pushDir = (transform.position - Player.transform.position).normalized;
+                pushDir.y = 0f;
+            }
+
+            // El enemigo ya no cuenta como vivo para el presupuesto de la sala,
+            // aunque su cadaver permanezca en el mapa hasta que caiga al vacio.
+            RoomEnemyTracker tracker = GetComponent<RoomEnemyTracker>();
+            if (tracker != null)
+                tracker.NotifyDeath();
 
             StartCoroutine(BuildRagdollNextFrame(pushDir));
-            Destroy(gameObject, ragdollDestroyTime);
         }
 
         private System.Collections.IEnumerator BuildRagdollNextFrame(Vector3 pushDir)
@@ -421,6 +473,44 @@ namespace PrisaControlada.Enemies
 
             foreach (var kv in bones)
                 kv.Value.AddForce(pushDir * ragdollImpulse, ForceMode.Impulse);
+
+            _ragdollBones.Clear();
+            foreach (Transform bone in transforms.Values)
+                _ragdollBones.Add(bone);
+
+            StartCoroutine(DespawnWhenFallsOutOfMap());
+        }
+
+        private System.Collections.IEnumerator DespawnWhenFallsOutOfMap()
+        {
+            while (true)
+            {
+                if (GetRagdollAverageY() < ragdollDespawnY)
+                {
+                    Destroy(gameObject);
+                    yield break;
+                }
+
+                yield return null;
+            }
+        }
+
+        private float GetRagdollAverageY()
+        {
+            if (_ragdollBones.Count == 0)
+                return float.PositiveInfinity;
+
+            float sum = 0f;
+            int count = 0;
+
+            foreach (Transform bone in _ragdollBones)
+            {
+                if (bone == null) continue;
+                sum += bone.position.y;
+                count++;
+            }
+
+            return count > 0 ? sum / count : float.PositiveInfinity;
         }
 
         private static float GetBoneRadius(string boneName)
@@ -474,7 +564,7 @@ namespace PrisaControlada.Enemies
             }
             _wasAttacking = IsAttacking;
 
-            bool isMoving = _state == ZombieState.Chase
+            bool isMoving = (_state == ZombieState.Chase && !_routeBlocked)
                 || (_state == ZombieState.Search && !_isSearchWaiting);
 
             if (_attackAnimTimer > 0f)
@@ -505,7 +595,7 @@ namespace PrisaControlada.Enemies
             }
             else
             {
-                MoveTowards(_searchPoint, moveSpeed);
+                TryMoveTowardsPosition(_searchPoint, moveSpeed);
                 if (Reached(_searchPoint))
                 {
                     _searchWaitUntil = Time.time + Random.Range(searchWaitMin, searchWaitMax);

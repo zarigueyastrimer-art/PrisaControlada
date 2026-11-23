@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Mensaje corto en pantalla (llave incorrecta, codigo invalido, etc).
     [DisallowMultipleComponent]
     public class InteractionPrompt : MonoBehaviour

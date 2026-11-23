@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Mira de 4 esquinas ("mira abierta"): queda siempre en pantalla y, cuando
     // apuntas a algo interactuable, las 4 esquinas se deslizan hacia el centro
     // y se "cierran" de forma suave (el mismo tamano de "mira cerrada").
@@ -100,39 +101,20 @@ namespace PrisaControlada.Player
             }
         }
 
+        // Pregunta al objeto apuntado si es interactuable. Usa la misma
+        // IInteractable que InventoryController: no importa si es una puerta,
+        // una nota o un pickup, el resultado es el mismo metodo.
         private bool IsLookingAtInteractable()
         {
             Ray ray = new Ray(viewCamera.transform.position, viewCamera.transform.forward);
             if (!Physics.Raycast(ray, out RaycastHit hit, range, rayMask, QueryTriggerInteraction.Collide))
                 return false;
 
-            DrawerController drawer = hit.collider.GetComponentInParent<DrawerController>();
-            if (drawer != null)
-                return drawer.IsDrawerHit(hit.collider);
+            IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
+            if (interactable == null) return false;
 
-            DoorController door = hit.collider.GetComponentInParent<DoorController>();
-            if (door != null)
-                return door.IsDoorHit(hit.collider);
-
-            if (hit.collider.GetComponentInParent<AmmoPickup>() != null)
-                return true;
-
-            if (hit.collider.GetComponentInParent<ShotgunAmmoPickup>() != null)
-                return true;
-
-            if (hit.collider.GetComponentInParent<GlockAmmoPickup>() != null)
-                return true;
-
-            if (hit.collider.GetComponentInParent<GlockMagazinePickup>() != null)
-                return true;
-
-            if (hit.collider.GetComponentInParent<NoteItem>() != null)
-                return true;
-
-            if (hit.collider.GetComponentInParent<AudioTrigger>() != null)
-                return true;
-
-            return hit.collider.GetComponentInParent<PickupItem>() != null;
+            // Valida la parte impactada: la hoja de la puerta si, el marco no.
+            return interactable.IsValidTarget(hit.collider);
         }
     }
 }

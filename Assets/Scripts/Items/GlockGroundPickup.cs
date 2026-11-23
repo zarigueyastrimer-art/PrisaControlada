@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     // Comportamiento completo del arma Glock como objeto del suelo: se agarra,
     // equipa el GlockToggle del jugador, se guarda en un slot y se suelta/tira,
     // igual que la escopeta o el revolver. Todo esta en este script; el prefab solo

@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using PrisaControlada.Core;
+using PrisaControlada.Items;
 using UnityEngine;
 
 namespace PrisaControlada.Map
 {
+    //TP2 - Matías Morilla
     // Generador del mapa infinito de salas.
     //
     // Arranca desde el HUB que el jugador coloca a mano en la escena y encadena
@@ -41,6 +43,7 @@ namespace PrisaControlada.Map
             public GameObject Door;
         }
 
+        //TP2 - Matías Morilla
         // Fila de la tabla de probabilidades por tipo (editable en el inspector).
         [System.Serializable]
         public class TypeWeightEntry
@@ -66,6 +69,10 @@ namespace PrisaControlada.Map
         [Tooltip("Prefab de puerta cerrada con llave (LockedDoor). Se usa en vez de doorPrefab " +
                  "cuando la sala de la que sale tiene RoomDefinition.lockExit marcado.")]
         [SerializeField] private GameObject lockedDoorPrefab;
+
+        [Tooltip("Prefab de puerta con codigo (CodeDoor). Se usa cuando la sala de la que sale " +
+                 "tiene RoomDefinition.lockExitWithCode marcado.")]
+        [SerializeField] private GameObject codeDoorPrefab;
 
         [Header("Ventana de streaming")]
         [Tooltip("Salas vivas al arrancar, contando el hub como la primera.")]
@@ -238,6 +245,94 @@ namespace PrisaControlada.Map
             return _rooms.Count > antes;
         }
 
+        // Resuelve y valida la puerta de la union antes de crear la sala. Si
+        // falta el prefab requerido o el tipo de cerradura no coincide, la union
+        // no se genera: nunca queda una abertura sin barrera.
+        private bool TryResolveDoorPrefab(RoomDefinition prevDef, GameObject previousRoom,
+            out GameObject doorPrefabToUse, out string exitCode, out bool lockWithCode)
+        {
+            doorPrefabToUse = null;
+            exitCode = string.Empty;
+            lockWithCode = prevDef != null && prevDef.lockExitWithCode;
+            bool lockWithKey = !lockWithCode && prevDef != null && prevDef.lockExit;
+
+            if (lockWithCode)
+            {
+                if (prevDef.lockExit)
+                {
+                    Debug.LogWarning($"[MapGen] '{prevDef.name}' tiene lockExit y lockExitWithCode " +
+                                     "marcados; se usara la cerradura con codigo.", previousRoom);
+                }
+
+                if (codeDoorPrefab == null)
+                {
+                    Debug.LogError($"[MapGen] '{prevDef.name}' requiere codeDoorPrefab, pero no esta " +
+                                   "asignado. No se creara la union sin puerta.", previousRoom);
+                    return false;
+                }
+
+                if (codeDoorPrefab.GetComponentInChildren<CodeDoor>(true) == null)
+                {
+                    Debug.LogError($"[MapGen] El prefab de puerta con codigo '{codeDoorPrefab.name}' " +
+                                   "no contiene CodeDoor. No se creara la union sin una cerradura valida.", previousRoom);
+                    return false;
+                }
+
+                doorPrefabToUse = codeDoorPrefab;
+
+                PuzzleCodeController puzzleCode = prevDef.GetComponentInChildren<PuzzleCodeController>(true);
+                if (puzzleCode == null)
+                {
+                    Debug.LogError($"[MapGen] '{prevDef.name}' tiene lockExitWithCode pero no contiene " +
+                                   "PuzzleCodeController; la puerta no tendra un codigo valido.", previousRoom);
+                }
+                else if (!puzzleCode.TryGetDoorCode(out exitCode))
+                {
+                    Debug.LogError($"[MapGen] '{prevDef.name}' no pudo resolver su codigo de puzzle; " +
+                                   "la puerta permanecera cerrada.", previousRoom);
+                }
+
+                return true;
+            }
+
+            if (lockWithKey)
+            {
+                if (lockedDoorPrefab == null)
+                {
+                    Debug.LogError($"[MapGen] '{prevDef.name}' requiere lockedDoorPrefab, pero no esta " +
+                                   "asignado. No se creara la union sin puerta.", previousRoom);
+                    return false;
+                }
+
+                if (lockedDoorPrefab.GetComponentInChildren<LockedDoor>(true) == null)
+                {
+                    Debug.LogError($"[MapGen] El prefab de puerta con llave '{lockedDoorPrefab.name}' " +
+                                   "no contiene LockedDoor. No se creara la union sin una cerradura valida.", previousRoom);
+                    return false;
+                }
+
+                doorPrefabToUse = lockedDoorPrefab;
+                return true;
+            }
+
+            if (doorPrefab == null)
+            {
+                Debug.LogError("[MapGen] No hay doorPrefab asignado. No se creara ninguna union sin puerta.",
+                    previousRoom);
+                return false;
+            }
+
+            if (doorPrefab.GetComponentInChildren<DoorController>(true) == null)
+            {
+                Debug.LogError($"[MapGen] El prefab de puerta '{doorPrefab.name}' no contiene " +
+                               "DoorController. No se creara la union sin una puerta valida.", previousRoom);
+                return false;
+            }
+
+            doorPrefabToUse = doorPrefab;
+            return true;
+        }
+
         // Instancia 'def' enganchada a la salida de 'prev' y arma su trigger.
         // El rebake global lo hace RefreshWindow/Start despues del spawn.
         private void SpawnRoom(SpawnedRoom prev, RoomDefinition def)
@@ -247,6 +342,15 @@ namespace PrisaControlada.Map
             if (outAnchor == null)
             {
                 Debug.LogError($"[MapGen] La sala '{prev.Go.name}' no tiene Anchor_Out; no se puede encadenar.", prev.Go);
+                return;
+            }
+
+            bool lockWithCode;
+            string exitCode;
+            GameObject doorPrefabToUse;
+            if (!TryResolveDoorPrefab(prevDef, prev.Go, out doorPrefabToUse, out exitCode,
+                    out lockWithCode))
+            {
                 return;
             }
 
@@ -274,26 +378,27 @@ namespace PrisaControlada.Map
             Vector3 roomPos = outAnchor.position - roomRot * inLocalPos;
             go.transform.SetPositionAndRotation(roomPos, roomRot);
 
-            // Puerta en el punto de union (contenedor aparte, fuera de la sala).
-            // Si la sala de la que sale tiene lockExit, la puerta se instancia
-            // cerrada con llave: el jugador necesita el KeyPickup para abrirla.
-            GameObject doorPrefabToUse = doorPrefab;
-            if (prevDef != null && prevDef.lockExit)
+            GameObject door = Instantiate(doorPrefabToUse, outAnchor.position,
+                FlatForward(outAnchor), _doorsContainer);
+
+            if (lockWithCode)
             {
-                if (lockedDoorPrefab != null)
+                CodeDoor codeDoor = door.GetComponentInChildren<CodeDoor>(true);
+                if (codeDoor == null)
                 {
-                    doorPrefabToUse = lockedDoorPrefab;
+                    Debug.LogError($"[MapGen] La puerta instanciada '{door.name}' no contiene CodeDoor; " +
+                                   "la union se descarta.", door);
+                    Destroy(door);
+                    Destroy(go);
+                    return;
                 }
-                else
+
+                if (!string.IsNullOrEmpty(exitCode) && !codeDoor.SetCorrectCode(exitCode))
                 {
-                    Debug.LogWarning($"[MapGen] '{prevDef.name}' tiene lockExit marcado pero no hay " +
-                                     "lockedDoorPrefab asignado en el generador; se crea la puerta normal.", prev.Go);
+                    Debug.LogError($"[MapGen] No se pudo asignar el codigo '{exitCode}' a la puerta " +
+                                   $"de '{prevDef.name}'; permanecera cerrada.", door);
                 }
             }
-
-            GameObject door = null;
-            if (doorPrefabToUse != null)
-                door = Instantiate(doorPrefabToUse, outAnchor.position, FlatForward(outAnchor), _doorsContainer);
 
             SpawnedRoom room = new SpawnedRoom
             {
@@ -489,9 +594,10 @@ namespace PrisaControlada.Map
         private RoomDefinition Sortear(RoomDefinition prevSource, bool prevIsCombat,
                                        bool penalizarCombate, bool sinRepetir)
         {
-            float total = 0f;
-            List<RoomDefinition> candidatas = new List<RoomDefinition>();
-            List<float> pesos = new List<float>();
+            // La tabla generica hace el sorteo por pesos; aca solo se calcula
+            // que peso le toca a cada candidata. Es el mismo WeightedTable<T>
+            // que usa LootSpawner para el loot, con otro T (RoomDefinition).
+            WeightedTable<RoomDefinition> tabla = new WeightedTable<RoomDefinition>();
 
             foreach (RoomDefinition def in roomPool)
             {
@@ -526,26 +632,12 @@ namespace PrisaControlada.Map
                     w *= Random.Range(Mathf.Min(historyWeightRange.x, historyWeightRange.y),
                                       Mathf.Max(historyWeightRange.x, historyWeightRange.y));
 
-                if (w <= 0f)
-                    continue;
-
-                candidatas.Add(def);
-                pesos.Add(w);
-                total += w;
+                // Peso 0 o negativo lo descarta la propia tabla al hacer Add.
+                tabla.Add(def, w);
             }
 
-            if (total <= 0f)
-                return null;
-
-            float roll = Random.Range(0f, total);
-            for (int i = 0; i < candidatas.Count; i++)
-            {
-                roll -= pesos[i];
-                if (roll <= 0f)
-                    return candidatas[i];
-            }
-
-            return candidatas[candidatas.Count - 1];
+            // Devuelve null si no quedo ninguna candidata (tabla vacia).
+            return tabla.Roll();
         }
 
         // Destruye la sala mas vieja y la puerta que entraba a ella.

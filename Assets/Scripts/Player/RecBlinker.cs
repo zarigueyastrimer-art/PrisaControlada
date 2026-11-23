@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Parpadeo del punto rojo "REC" del overlay de camara (CameraHUD_Canvas).
     // Solo alterna la visibilidad del punto a un ritmo fijo; el texto "rec"
     // al lado queda estatico. Usa tiempo sin escala para que el parpadeo

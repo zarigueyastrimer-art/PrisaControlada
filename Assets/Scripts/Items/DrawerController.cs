@@ -1,12 +1,15 @@
 using System.Collections.Generic;
+using PrisaControlada.Player;
 using UnityEngine;
 
 namespace PrisaControlada.Items
 {
-    public class DrawerController : MonoBehaviour
+    //TP2 - Francisco Larrondo
+    public class DrawerController : MonoBehaviour, IInteractable
     {
         private const int DrawerLayer = 10;
 
+        //TP2 - Francisco Larrondo
         [System.Serializable]
         public class Drawer
         {
@@ -145,6 +148,30 @@ namespace PrisaControlada.Items
         public bool IsDrawerHit(Collider hitCollider)
         {
             return FindDrawerIndex(hitCollider) >= 0;
+        }
+
+        // ---- IInteractable ----
+
+        // El cajon no es agarrable: no lleva flecha de proximidad.
+        public bool IsGrabbable => false;
+
+        // Solo el cajon es interactuable: pegarle al mueble que lo contiene no
+        // lo abre. FindDrawerIndex camina hacia arriba hasta encontrar el
+        // Transform del cajon, por eso el marco devuelve false.
+        public bool IsValidTarget(Collider hitCollider)
+        {
+            return IsDrawerHit(hitCollider);
+        }
+
+        // El cajon no usa el inventario: solo necesita saber que parte del
+        // mueble se pego para abrir el cajon correcto.
+        public bool TryInteract(InventoryController inventory, Collider hitCollider)
+        {
+            if (!IsDrawerHit(hitCollider))
+                return false;
+
+            ToggleDrawer(hitCollider);
+            return true;
         }
 
         public void ToggleDrawer(Collider hitCollider)

@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     [RequireComponent(typeof(Camera))]
     public class PlayerCamera : MonoBehaviour
     {

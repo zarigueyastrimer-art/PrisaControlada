@@ -9,6 +9,7 @@ using UnityEngine.AI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Excluye los paneles de puerta del bake del NavMesh y vuelve a hornear.
     // Los paneles horneados (mascara con capa 3 DOOR + paneles en capa 0) recortan
     // huecos non-walkable en las bocas y los enemigos no pueden pasar.
@@ -22,30 +23,29 @@ namespace PrisaControlada.Editor
         private static int s_WatchTicks;
 
         // CONFIGURACION COMPLETA: agentRadius 0.3 (pasillos/puertas de ~1.15 m),
-        // puertas excluidas del bake y obstacle carve para que una puerta cerrada
-        // corte el NavMesh y una abierta deje el pasillo azul.
+        // puertas excluidas del bake y obstacle SIN carve. El bloqueo logico de
+        // una puerta cerrada se resuelve en EnemyBase, sin modificar la malla.
         [MenuItem("Tools/PrisaControlada/NavMesh: Setup Tolerante + Puertas + Rebake", false, 0)]
         public static void SetupTolerantAndRebake()
         {
             if (!CanRun())
                 return;
 
-            List<GameObject> raices = CollectDoorRoots();
+            List<GameObject> paneles = CollectDoorPanels(true);
             int marcadas = 0;
-            foreach (GameObject root in raices)
+            foreach (GameObject panel in paneles)
             {
-                NavMeshModifier mod = root.GetComponent<NavMeshModifier>();
+                NavMeshModifier mod = panel.GetComponent<NavMeshModifier>();
                 if (mod == null)
-                    mod = Undo.AddComponent<NavMeshModifier>(root);
+                    mod = Undo.AddComponent<NavMeshModifier>(panel);
                 mod.ignoreFromBuild = true;
-                mod.applyToChildren = true;
-                EditorUtility.SetDirty(root);
-                if (root.scene.IsValid())
-                    EditorSceneManager.MarkSceneDirty(root.scene);
+                mod.applyToChildren = false;
+                EditorUtility.SetDirty(panel);
+                if (panel.scene.IsValid())
+                    EditorSceneManager.MarkSceneDirty(panel.scene);
                 marcadas++;
             }
 
-            List<GameObject> paneles = CollectDoorPanels(true);
             int obstaculos = 0;
             foreach (GameObject panel in paneles)
             {
@@ -80,7 +80,7 @@ namespace PrisaControlada.Editor
             }
 
             Debug.Log(
-                $"[NavMeshSetup] Puertas excluidas del bake={marcadas}, obstacle carve={obstaculos}, " +
+                $"[NavMeshSetup] Puertas excluidas del bake={marcadas}, obstacle sin carve={obstaculos}, " +
                 $"mascara {(maskAntes < 0 ? "sin cambio" : maskAntes + "->" + maskDespues)}, " +
                 $"agentRadius={AgentRadiusDeseado} (Project Settings > Navigation).");
 
@@ -88,7 +88,7 @@ namespace PrisaControlada.Editor
 
             EditorUtility.DisplayDialog(
                 "NavMesh Setup",
-                $"{marcadas} puerta(s) excluida(s) del bake y {obstaculos} obstacle(s) carve agregados.\n\n" +
+                $"{marcadas} puerta(s) excluida(s) del bake y {obstaculos} obstacle(s) sin carve agregados.\n\n" +
                 "Bake en curso (barra de progreso de Unity).\n" +
                 "CUANDO TERMINE corre solo el Diagnostics.\n\n" +
                 "Después GUARDÁ LA ESCENA (Ctrl+S).",
@@ -109,7 +109,7 @@ namespace PrisaControlada.Editor
                 if (mod == null)
                     mod = Undo.AddComponent<NavMeshModifier>(go);
                 mod.ignoreFromBuild = true;
-                mod.applyToChildren = true;
+                mod.applyToChildren = false;
                 EditorUtility.SetDirty(go);
                 EditorSceneManager.MarkSceneDirty(go.scene);
                 marcadas++;
@@ -311,8 +311,9 @@ namespace PrisaControlada.Editor
             return new List<GameObject>(result.Values);
         }
 
-        // Agrega (o ajusta) un NavMeshObstacle Box con carve del tamano del panel.
-        // Es lo que recorta el pasillo cuando la puerta esta cerrada.
+        // Agrega (o ajusta) un NavMeshObstacle Box del tamano del panel.
+        // Se mantiene SIN carve: solo evita localmente y el gate de EnemyBase
+        // impide perseguir a través de la puerta cerrada.
         private static bool EnsureNavMeshObstacle(GameObject panel)
         {
             NavMeshObstacle obs = panel.GetComponent<NavMeshObstacle>();
@@ -342,7 +343,7 @@ namespace PrisaControlada.Editor
             }
 
             obs.shape = NavMeshObstacleShape.Box;
-            obs.carving = true;
+            obs.carving = false;
             obs.carveOnlyStationary = true;
             obs.enabled = true;
 

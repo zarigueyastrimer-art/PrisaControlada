@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 342226658017462690}
   - component: {fileID: 4722647512914632031}
   - component: {fileID: 4383970936612108478}
+  - component: {fileID: 4383970936612108479}
   m_Layer: 3
   m_Name: DoorPanel
   m_TagString: Untagged
@@ -121,10 +122,30 @@ NavMeshObstacle:
   m_Shape: 1
   m_Extents: {x: 0.5749438, y: 1.1587992, z: 0.044870615}
   m_MoveThreshold: 0.1
-  m_Carve: 1
+  m_Carve: 0
   m_CarveOnlyStationary: 1
   m_Center: {x: 0.5676253, y: 1.1609347, z: 0.029494047}
   m_TimeToStationary: 0.5
+--- !u!114 &4383970936612108479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 472485732819738103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 0
+  m_AffectedAgents: ffffffff
 --- !u!1 &2198800517704402111
 GameObject:
   m_ObjectHideFlags: 0
@@ -178,7 +199,7 @@ MonoBehaviour:
   openAngle: 90
   openSpeed: 5
   hingeSide: 1
-  doorObstacle: {fileID: 0}
+  doorObstacle: {fileID: 4383970936612108478}
   requiredKeyID: 1
   startLocked: 1
 --- !u!1 &3980697794782916140

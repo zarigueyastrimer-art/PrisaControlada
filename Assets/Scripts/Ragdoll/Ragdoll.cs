@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//TP2 - Matías Morilla
 public class Ragdoll : MonoBehaviour
 {
     [SerializeField] private List<RagdollComponent> ragdollComponents = new List<RagdollComponent>();

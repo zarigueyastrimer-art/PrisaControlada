@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using PrisaControlada.Core;
 using UnityEngine;
 using UnityEngine.AI;
 using PrisaControlada.Map;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     // Spawner de enemigos con tabla ponderada (igual que LootSpawner pero para
     // enemigos). Cada entrada tiene un tipo de enemigo y un peso; ademas hay un
     // peso de "no sale nada" que compite en el mismo sorteo. Los enemigos se
@@ -18,6 +20,7 @@ namespace PrisaControlada.Enemies
     // para que se destruyan automáticamente cuando la sala se despawn.
     public class EnemyLootSpawner : MonoBehaviour
     {
+        //TP2 - Agustín Labarque
         [System.Serializable]
         public class EnemyEntry
         {
@@ -158,35 +161,28 @@ namespace PrisaControlada.Enemies
         }
 
         // Devuelve la entrada ganadora segun pesos, o null si gano 'nada'.
+        // La misma clase generica WeightedTable<T> se usa para loot, salas y
+        // enemigos; en este caso T es EnemyEntry.
         private EnemyEntry RollEntry()
         {
-            float total = nothingWeight;
-            if (enemyTable != null)
-            {
-                foreach (EnemyEntry e in enemyTable)
-                    if (e != null && e.prefab != null) total += Mathf.Max(0f, e.weight);
-            }
+            WeightedTable<EnemyEntry> table = new WeightedTable<EnemyEntry>();
 
-            if (total <= 0f) return null;
-
-            float roll = Random.Range(0f, total);
-
-            // Resta el peso de 'nada': si cae aca, no suelta nada.
-            roll -= nothingWeight;
-            if (roll < 0f) return null;
+            // null representa el resultado "no sale nada" y compite con los
+            // enemigos usando el mismo mecanismo de pesos.
+            table.Add(null, nothingWeight);
 
             if (enemyTable != null)
             {
-                foreach (EnemyEntry e in enemyTable)
+                foreach (EnemyEntry entry in enemyTable)
                 {
-                    if (e == null || e.prefab == null) continue;
-                    float w = Mathf.Max(0f, e.weight);
-                    if (roll < w) return e;
-                    roll -= w;
+                    if (entry == null || entry.prefab == null)
+                        continue;
+
+                    table.Add(entry, entry.weight);
                 }
             }
 
-            return null;
+            return table.Roll();
         }
     }
 }

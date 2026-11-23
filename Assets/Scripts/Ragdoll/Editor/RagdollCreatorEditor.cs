@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
+//TP2 - Matías Morilla
 [CanEditMultipleObjects]
 [CustomEditor(typeof(RagdollCreator))]
 public class RagdollCreatorEditor : Editor

@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: crea la barra de zoom en el borde derecho de la pantalla:
     //   Player > ZoomHUD_Canvas > ZoomBar (arte "Zoom barra.png")
     //                      > Pista (recorrido del marcador)

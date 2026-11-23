@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using PrisaControlada.Items;
 using UnityEngine;
@@ -5,6 +6,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Resaltador de proximidad con DOS comportamientos independientes:
     //
     //  1) BORDE BLANCO (outline): se muestra al APUNTAR con el centro de la
@@ -39,11 +41,17 @@ namespace PrisaControlada.Player
         [SerializeField] private int maxArrows = 16;
 
         // Una flecha por pickup cercano, gestionadas con un pool.
+        // Dictionary: cada pickup cercano lleva su flecha asociada y se va
+        // directo a buscarla en vez de recorrer la lista entera cada frame.
         private readonly Dictionary<GameObject, PickupArrow> _arrowsByPickup = new Dictionary<GameObject, PickupArrow>();
         private readonly List<PickupArrow> _arrowPool = new List<PickupArrow>();
         private readonly List<GameObject> _nearbyPickups = new List<GameObject>();
         private readonly List<GameObject> _stalePickups = new List<GameObject>();
-        private readonly Collider[] _proxHits = new Collider[32];
+
+        // Buffer ampliable para OverlapSphereNonAlloc. Si una zona contiene
+        // más colliders que su capacidad, se agranda y se vuelve a consultar;
+        // así nunca se omiten pickups por truncar el resultado.
+        private Collider[] _proxHits = new Collider[32];
 
         private GameObject _outlined;
         private readonly List<GameObject> _outlineClones = new List<GameObject>();
@@ -133,7 +141,17 @@ namespace PrisaControlada.Player
             _nearbyPickups.Clear();
             Vector3 origin = viewCamera.transform.position;
 
-            int count = Physics.OverlapSphereNonAlloc(origin, pickupRange, _proxHits, rayMask, QueryTriggerInteraction.Collide);
+            int count;
+            do
+            {
+                count = Physics.OverlapSphereNonAlloc(origin, pickupRange, _proxHits, rayMask, QueryTriggerInteraction.Collide);
+                if (count < _proxHits.Length)
+                    break;
+
+                Array.Resize(ref _proxHits, _proxHits.Length * 2);
+            }
+            while (true);
+
             for (int i = 0; i < count; i++)
             {
                 Collider hit = _proxHits[i];
@@ -237,43 +255,57 @@ namespace PrisaControlada.Player
         private GameObject FindAimedInteractable()
         {
             Ray ray = new Ray(viewCamera.transform.position, viewCamera.transform.forward);
-            if (!Physics.Raycast(ray, out RaycastHit hit, aimRange, rayMask, QueryTriggerInteraction.Collide))
+            float maxRange = Mathf.Max(aimRange, aimRangeDoor);
+            if (!Physics.Raycast(ray, out RaycastHit hit, maxRange, rayMask, QueryTriggerInteraction.Collide))
                 return null;
 
-            if (hit.collider.GetComponentInParent<DrawerController>() != null)
-                return hit.collider.transform.parent != null ? hit.collider.transform.parent.gameObject : hit.collider.gameObject;
-            if (hit.collider.GetComponentInParent<DoorController>() != null)
-                return hit.collider.transform.parent != null ? hit.collider.transform.parent.gameObject : hit.collider.gameObject;
-            if (hit.collider.GetComponentInParent<AmmoPickup>() != null)
-                return hit.collider.gameObject;
-            if (hit.collider.GetComponentInParent<GlockAmmoPickup>() != null)
-                return hit.collider.gameObject;
-            if (hit.collider.GetComponentInParent<GlockMagazinePickup>() != null)
-                return hit.collider.gameObject;
-            if (hit.collider.GetComponentInParent<NoteItem>() != null)
-                return hit.collider.gameObject;
-            if (hit.collider.GetComponentInParent<AudioTrigger>() != null)
-                return hit.collider.gameObject;
-            if (hit.collider.GetComponentInParent<PickupItem>() != null)
-                return hit.collider.gameObject;
+            // Cualquier interactuable sirve para el borde blanco (puerta,
+            // cajon, nota, audio, municion, pickup). Antes aca habia una cadena
+            // de 8 if con el nombre de cada tipo; ahora se le pregunta a la
+            // interfaz una sola vez.
+            IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
+            if (interactable == null || !interactable.IsValidTarget(hit.collider))
+                return null;
 
-            return null;
+            // Las puertas tienen un rango de apuntado propio, mayor que el de
+            // los demas interactuables.
+            float allowedRange = interactable is DoorController ? aimRangeDoor : aimRange;
+            if (hit.distance > allowedRange)
+                return null;
+
+            // Puertas y cajones: el borde se dibuja sobre la pieza madre (la
+            // hoja / el mueble), que es mas grande que el collider que pego el
+            // rayo. El resto se resalta sobre el propio collider apuntado.
+            if (interactable is DoorController || interactable is DrawerController)
+            {
+                Transform parent = hit.collider.transform.parent;
+                return parent != null ? parent.gameObject : hit.collider.gameObject;
+            }
+
+            return hit.collider.gameObject;
         }
 
         private GameObject GetPickupRoot(Collider hit)
         {
-            if (hit.GetComponentInParent<AmmoPickup>() != null)
-                return hit.gameObject;
-            if (hit.GetComponentInParent<ShotgunAmmoPickup>() != null)
-                return hit.gameObject;
-            if (hit.GetComponentInParent<GlockAmmoPickup>() != null)
-                return hit.gameObject;
-            if (hit.GetComponentInParent<GlockMagazinePickup>() != null)
-                return hit.gameObject;
-
+            // Flecha sobre lo que entra al inventario: la raiz del PickupItem
+            // (arma, linterna, llave, vendas...). Nunca sobre puertas ni notas.
             PickupItem item = hit.GetComponentInParent<PickupItem>();
             if (item != null)
                 return item.gameObject;
+
+            // La municion es agarrable pero NO es PickupItem: entra por la
+            // interfaz y su propio IsGrabbable decide. Antes aca habian 4 if
+            // (uno por tipo de municion).
+            IInteractable interactable = hit.GetComponentInParent<IInteractable>();
+            if (interactable != null && interactable.IsGrabbable && interactable.IsValidTarget(hit))
+            {
+                // La clave del diccionario debe ser siempre la raiz logica del
+                // pickup, no el collider hijo que la esfera haya tocado.
+                Component interactableComponent = interactable as Component;
+                return interactableComponent != null
+                    ? interactableComponent.gameObject
+                    : hit.gameObject;
+            }
 
             return null;
         }

@@ -103,12 +103,23 @@ MonoBehaviour:
   damageRadius: 0.7
   damageOffset: 0.95
   damageHeight: 1.1
-  showAttackDebug: 1
+  showAttackDebug: 0
+  headshotRadius: 0.2
+  headBoneName: mixamorig:Head
   viewRange: 14
   viewAngle: 100
   visionMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  pursuitPathRefreshInterval: 0.2
+  pursuitTargetSampleRadius: 0.75
+  movementTargetSampleRadius: 1.5
+  navMeshSnapRadius: 0.75
+  closedDoorPathPadding: 0.05
+  minPursuitSeparation: 0.95
+  hardStopAcceleration: 1000
+  aggroOnDamage: 1
+  aggroDuration: 8
   heartbeatClip: {fileID: 8300000, guid: 5ebbafd4de4b8bb49b1abae472a30a2c, type: 3}
   heartbeatVolume: 0.05
   heartbeatMinDistance: 2
@@ -123,6 +134,9 @@ MonoBehaviour:
   footstepMinDistance: 2
   footstepMaxDistance: 15
   loseTargetTime: 5
+  hearingRange: 8
+  minHeardLevel: 0.18
+  noiseMemorySeconds: 2
   breathingClip: {fileID: 8300000, guid: 180b5c21637ec4f4db2f81c747e7015b, type: 3}
   breathingVolume: 0.05
   breathingMinDistance: 2
@@ -133,7 +147,7 @@ MonoBehaviour:
   staggerAmplitude: 5
   staggerFrequency: 3
   attackAnimDuration: 1.5
-  ragdollDestroyTime: 5
+  ragdollDespawnY: -10
   ragdollImpulse: 8
   hitReactForce: 0.5
   hitReactDecaySpeed: 10

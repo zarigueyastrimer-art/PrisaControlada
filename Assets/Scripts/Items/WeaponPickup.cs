@@ -3,12 +3,14 @@ using UnityEngine;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     public enum PickupWeaponKind
     {
         Revolver,
         Shotgun,
     }
 
+    //TP2 - Francisco Larrondo
     // El arma como objeto recogible: en el suelo es el modelo del arma sola (sin manos).
     // Al agarrarla equipa el viewmodel del jugador y se oculta. Al tirarla o guardarla
     // en un slot se desequipa el viewmodel y el objeto vuelve a ser fisico/visible.
@@ -152,6 +154,7 @@ namespace PrisaControlada.Items
         protected Component _resolved;
     }
 
+    //TP2 - Francisco Larrondo
     // Pickup especifico de la escopeta: siempre equipa el ShotgunToggle del jugador,
     // sin depender de ningun campo del prefab (evita que se equipe el revolver).
     public class ShotgunPickup : WeaponPickup

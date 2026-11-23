@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class InventoryController : MonoBehaviour
     {
         private const int SlotCount = 2;
@@ -32,6 +33,8 @@ namespace PrisaControlada.Player
         private InputAction _slot2Action;
         private InputAction _dropAction;
 
+        // Composicion: el inventario "tiene" un array de PickupItem (2 slots),
+        // no es un PickupItem. Los objetos guardados son de otra clase.
         private readonly PickupItem[] _slots = new PickupItem[SlotCount];
         private PickupItem _heldItem;
         private Transform _holdPoint;
@@ -39,6 +42,8 @@ namespace PrisaControlada.Player
 
         public PickupItem HeldItem => _heldItem;
 
+        // Mismo esquema que PlayerHealth.OnDamaged: el HUD se suscribe y esta
+        // clase solo invoca, sin saber quien esta escuchando.
         public event Action InventoryChanged;
 
         public void SetInteractBlocked(bool blocked)
@@ -60,6 +65,29 @@ namespace PrisaControlada.Player
         {
             if (index < 0 || index >= SlotCount) return null;
             return _slots[index];
+        }
+
+        // ---- API usada por los objetos que implementan IInteractable ----
+
+        // Lo llama PickupItem.TryInteract(). Si la mano esta ocupada no agarra
+        // nada y devuelve false, para que el jugador sepa que tiene que vaciar
+        // la mano antes (el objeto queda en el mundo sin cambiar).
+        public bool TryGrabItem(PickupItem item)
+        {
+            if (item == null || _heldItem != null) return false;
+
+            TakeToHand(item);
+            InventoryChanged?.Invoke();
+            PlayPickupSound(item is WeaponPickup || item is GlockGroundPickup);
+            return true;
+        }
+
+        // Lo llaman los pickups de municion. Sumar balas no mueve los slots,
+        // pero si cambia el HUD de reserva, por eso se notifica igual.
+        public void NotifyAmmoCollected()
+        {
+            PlayPickupSound(false);
+            InventoryChanged?.Invoke();
         }
 
         private void PlayPickupSound(bool isWeapon)
@@ -154,6 +182,14 @@ namespace PrisaControlada.Player
                 UseSlot(1);
         }
 
+        // Miramos lo que tenemos enfrente y le preguntamos al objeto si es
+        // interactuable. Antes aca habia una cadena de 9 if, uno por cada tipo
+        // de objeto (cajon, nota, audio, puerta, 4 municiones y pickup); ahora
+        // el tipo concreto no se conoce aca, solo la interfaz IInteractable.
+        // La usan tres lugares: aca para agarrar, la mira para saber cuando
+        // cerrarse y el resaltador para el borde y la flecha.
+        // Si aparece un tipo nuevo de objeto este metodo no se toca: alcanza
+        // con que la clase implemente la interfaz.
         private void TryGrab()
         {
             if (viewCamera == null || _holdPoint == null) return;
@@ -162,96 +198,16 @@ namespace PrisaControlada.Player
             if (!Physics.Raycast(ray, out RaycastHit hit, pickupRange, pickupMask, QueryTriggerInteraction.Collide))
                 return;
 
-            DrawerController drawer = hit.collider.GetComponentInParent<DrawerController>();
-            if (drawer != null)
-            {
-                drawer.ToggleDrawer(hit.collider);
+            IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
+            if (interactable == null) return;
+
+            // El contrato se valida siempre desde un unico punto: primero se
+            // pregunta si la parte impactada es interactiva y recien despues
+            // se intenta consumar la interaccion.
+            if (!interactable.IsValidTarget(hit.collider))
                 return;
-            }
 
-            NoteItem note = hit.collider.GetComponentInParent<NoteItem>();
-            if (note != null)
-            {
-                note.TryRead();
-                return;
-            }
-
-            AudioTrigger audioTrigger = hit.collider.GetComponentInParent<AudioTrigger>();
-            if (audioTrigger != null)
-            {
-                audioTrigger.TryPlay();
-                return;
-            }
-
-            DoorController door = hit.collider.GetComponentInParent<DoorController>();
-            if (door != null)
-            {
-                if (door.IsDoorHit(hit.collider))
-                    door.TryInteract(this);
-                return;
-            }
-
-            AmmoPickup ammo = hit.collider.GetComponentInParent<AmmoPickup>();
-            if (ammo != null)
-            {
-                if (ammo.TryCollect())
-                {
-                    Debug.Log($"<color=#77ff77>[AmmoPickup] Municion agarrada: +{ammo.Amount} balas externas. Item destruido.</color>");
-                    Destroy(ammo.gameObject);
-                }
-                PlayPickupSound(false);
-                InventoryChanged?.Invoke();
-                return;
-            }
-
-            ShotgunAmmoPickup shellBox = hit.collider.GetComponentInParent<ShotgunAmmoPickup>();
-            if (shellBox != null)
-            {
-                if (shellBox.TryCollect())
-                {
-                    Debug.Log($"<color=#77ff77>[ShotgunAmmoPickup] Caja de balas agarrada: +{shellBox.Amount} cartuchos. Item destruido.</color>");
-                    Destroy(shellBox.gameObject);
-                }
-                PlayPickupSound(false);
-                InventoryChanged?.Invoke();
-                return;
-            }
-
-            GlockAmmoPickup glockBox = hit.collider.GetComponentInParent<GlockAmmoPickup>();
-            if (glockBox != null)
-            {
-                if (glockBox.TryCollect())
-                {
-                    Debug.Log($"<color=#77ff77>[GlockAmmoPickup] Caja de balas de glock agarrada: +{glockBox.Amount} balas. Item destruido.</color>");
-                    Destroy(glockBox.gameObject);
-                }
-                PlayPickupSound(false);
-                InventoryChanged?.Invoke();
-                return;
-            }
-
-            GlockMagazinePickup glockMag = hit.collider.GetComponentInParent<GlockMagazinePickup>();
-            if (glockMag != null)
-            {
-                if (glockMag.TryCollect())
-                {
-                    Debug.Log($"<color=#77ff77>[GlockMagazinePickup] Cargador de glock agarrado: +{glockMag.Amount} balas a la reserva. Item destruido.</color>");
-                    Destroy(glockMag.gameObject);
-                }
-                PlayPickupSound(false);
-                InventoryChanged?.Invoke();
-                return;
-            }
-
-            if (_heldItem != null) return;
-
-            PickupItem item = hit.collider.GetComponentInParent<PickupItem>();
-            if (item != null)
-            {
-                TakeToHand(item);
-                InventoryChanged?.Invoke();
-                PlayPickupSound(item is WeaponPickup || item is GlockGroundPickup);
-            }
+            interactable.TryInteract(this, hit.collider);
         }
 
         private void UseSlot(int index)

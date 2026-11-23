@@ -1,11 +1,13 @@
+using PrisaControlada.Player;
 using UnityEngine;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     // Nota interactiva. Va en un GameObject con collider (trigger o no).
     // Al interactuar (tecla E), muestra la imagen asignada en pantalla y pausa el juego.
     [DisallowMultipleComponent]
-    public class NoteItem : MonoBehaviour
+    public class NoteItem : MonoBehaviour, IInteractable
     {
         [Header("Imagen de la Nota")]
         [Tooltip("Imagen que se muestra al interactuar. Arrastra un Texture2D aqui.")]
@@ -42,6 +44,23 @@ namespace PrisaControlada.Items
         public string GetPromptMessage()
         {
             return promptMessage;
+        }
+
+        // ---- IInteractable ----
+
+        // Leer no levanta nada del suelo: no lleva flecha de proximidad.
+        public bool IsGrabbable => false;
+
+        // La nota es interactiva desde cualquier parte de su collider.
+        public bool IsValidTarget(Collider hitCollider)
+        {
+            return true;
+        }
+
+        // Leer no toca el inventario: solo muestra la imagen y pausa el juego.
+        public bool TryInteract(InventoryController inventory, Collider hitCollider)
+        {
+            return TryRead();
         }
     }
 }

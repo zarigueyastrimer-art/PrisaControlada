@@ -4,18 +4,14 @@ using UnityEngine;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     public static class EnemyModelReplacementSetup
     {
-        private const string BlindPrefabPath = "Assets/Prefabs/Enemies/BlindEnemy.prefab";
         private const string RunnerPrefabPath = "Assets/Prefabs/Enemies/RunnerEnemy.prefab";
-        private const string BlindIdleFbx = "Assets/MyAssets/blindPrototipo/Idle.fbx";
-        private const string BlindRunFbx = "Assets/MyAssets/blindPrototipo/Run.fbx";
         private const string RunnerIdleFbx = "Assets/MyAssets/runerPrototipo/Anim/Runner40k@Unarmed Idle.fbx";
         private const string RunnerRunFbx = "Assets/MyAssets/runerPrototipo/Anim/Runner40k@Running Crawl.fbx";
-        private const string BlindMatPath = "Assets/Materials/Enemies/BlindBody.mat";
         private const string RunnerMatPath = "Assets/Materials/Enemies/RunnerBody.mat";
         private const string ResourcesFolder = "Assets/Resources";
-        private const string BlindControllerPath = "Assets/Resources/BlindAnimator.controller";
         private const string RunnerControllerPath = "Assets/Resources/RunnerAnimator.controller";
         private const float TargetHeight = 2f;
 
@@ -25,17 +21,19 @@ namespace PrisaControlada.Editor
             Debug.Log("[EnemyModelSetup] Iniciando...");
 
             EnsureResourcesFolder();
-            RuntimeAnimatorController blindCtrl = CreateSpeedController(
-                BlindControllerPath, BlindIdleFbx, BlindRunFbx, "Blind");
+
+            // Blind usa un FBX y una configuracion de materiales distintos;
+            // se procesa con la herramienta definitiva para evitar mezclar rigs.
+            BlindModelSetup.Setup();
+
             RuntimeAnimatorController runnerCtrl = CreateSpeedController(
                 RunnerControllerPath, RunnerIdleFbx, RunnerRunFbx, "Runner");
 
-            ReplaceOne(BlindPrefabPath, BlindIdleFbx, BlindMatPath, "Blind", blindCtrl);
             ReplaceOne(RunnerPrefabPath, RunnerIdleFbx, RunnerMatPath, "Runner", runnerCtrl);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[EnemyModelSetup] Listo. Mesh + Animator (Idle/Run) en Blind y Runner.");
+            Debug.Log("[EnemyModelSetup] Listo. Blind y Runner actualizados.");
         }
 
         private static void EnsureResourcesFolder()

@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     public class RedFilterController : MonoBehaviour
     {
         [SerializeField] private int lowHealthThreshold = 25;

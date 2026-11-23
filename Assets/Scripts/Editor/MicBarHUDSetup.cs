@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: reemplaza el canvas viejo del microfono (MicNoiseMeter_Canvas, una
     // barra horizontal con un Image "fill") por la barra vertical nueva
     // (MicBarHUD_Canvas): tres segmentos de barritas (blancas abajo, amarillas

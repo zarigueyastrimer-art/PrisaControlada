@@ -9,6 +9,7 @@ using UnityEngine.AI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Diagnostico de solo lectura del NavMesh horneado.
     // Mide si cada boca de puerta queda transitable y lista fuentes de bake problematicas.
     // Correr en Edit Mode (bake guardado) y en Play Mode (bake de RuntimeNavMesh) para comparar.
@@ -74,16 +75,32 @@ namespace PrisaControlada.Editor
 
             int okCount = 0;
             int bloqueadas = 0;
+            int desconectadas = 0;
             int sinNav = 0;
             int sinPanel = 0;
+            int invalidas = 0;
 
             foreach (DoorController door in doors)
             {
-                Transform panel = ResolvePanel(door);
+                SerializedObject doorSo = new SerializedObject(door);
+                Transform panel = doorSo.FindProperty("doorPanel")?.objectReferenceValue as Transform;
+                Transform hinge = doorSo.FindProperty("hinge")?.objectReferenceValue as Transform;
+                NavMeshObstacle obstacle = doorSo.FindProperty("doorObstacle")?.objectReferenceValue as NavMeshObstacle;
+
                 if (panel == null)
                 {
                     sinPanel++;
+                    invalidas++;
                     sb.AppendLine($"[PUERTA] '{FullPath(door.transform)}' SIN PANEL asignado -> no hay geometria de puerta en el bake.");
+                    continue;
+                }
+
+                if (hinge == null || obstacle == null)
+                {
+                    invalidas++;
+                    sb.AppendLine($"[PUERTA] '{FullPath(door.transform)}' REFERENCIAS INVALIDAS " +
+                                  $"(panel='{panel.name}', hinge={(hinge != null ? hinge.name : "NULL")}, " +
+                                  $"obstacle={(obstacle != null ? obstacle.name : "NULL")}).");
                     continue;
                 }
 
@@ -103,9 +120,10 @@ namespace PrisaControlada.Editor
                 Vector3 crossDir = GetCrossAxis(panel, bounds.size, out float halfWidth);
                 float offset = Mathf.Max(0.75f, halfWidth + 0.55f);
 
-                bool boca = SamplePos(mouth, out float dBoca);
-                bool izq = SamplePos(mouth - crossDir * offset, out float dIzq);
-                bool der = SamplePos(mouth + crossDir * offset, out float dDer);
+                bool boca = SamplePos(mouth, out float dBoca, out _);
+                bool izq = SamplePos(mouth - crossDir * offset, out float dIzq, out Vector3 posIzq);
+                bool der = SamplePos(mouth + crossDir * offset, out float dDer, out Vector3 posDer);
+                bool rutaCompleta = izq && der && HasCompletePath(posIzq, posDer);
                 int trisEnPanel = CountTrisInside(tri, bounds, navOk);
 
                 int layer = panel.gameObject.layer;
@@ -116,14 +134,19 @@ namespace PrisaControlada.Editor
                 {
                     verdict = "SIN DATOS";
                 }
-                else if (boca)
+                else if (boca && izq && der && rutaCompleta)
                 {
-                    verdict = "OK (boca transitable)";
+                    verdict = "OK (boca transitable y ruta PathComplete)";
                     okCount++;
                 }
-                else if (izq || der)
+                else if (izq && der && !rutaCompleta)
                 {
-                    verdict = "BLOQUEADA (hueco non-walkable en la boca)";
+                    verdict = "DESCONECTADA (no existe una ruta PathComplete entre ambos lados)";
+                    desconectadas++;
+                }
+                else if (boca || izq || der)
+                {
+                    verdict = "BLOQUEADA (boca o uno de sus lados no tienen NavMesh)";
                     bloqueadas++;
                 }
                 else
@@ -136,10 +159,13 @@ namespace PrisaControlada.Editor
                     $"[PUERTA] '{FullPath(door.transform)}' panel='{panel.name}' capa={layer}({LayerMask.LayerToName(layer)}) " +
                     $"enMascara={enMascara} boca={(boca ? $"SI({dBoca:F2})" : "NO")} " +
                     $"izq={(izq ? $"SI({dIzq:F2})" : "NO")} der={(der ? $"SI({dDer:F2})" : "NO")} " +
+                    $"ruta={(izq && der ? (rutaCompleta ? "PathComplete" : "INCOMPLETA") : "SIN MUESTRAS DOS LADOS")} " +
                     $"trisEnPanel={trisEnPanel} -> {verdict}");
             }
 
-            sb.AppendLine($"[PUERTAS] resumen: {okCount} OK, {bloqueadas} BLOQUEADAS, {sinNav} sin navmesh cerca, {sinPanel} sin panel.");
+            sb.AppendLine($"[PUERTAS] resumen: {okCount} OK, {bloqueadas} BLOQUEADAS, " +
+                          $"{desconectadas} DESCONECTADAS, {sinNav} sin navmesh cerca, " +
+                          $"{sinPanel} sin panel, {invalidas} referencias invalidas.");
         }
 
         private static void ReportBakeSources(StringBuilder sb, NavMeshSurface mainSurface, int mask)
@@ -244,15 +270,29 @@ namespace PrisaControlada.Editor
             return dir.sqrMagnitude < 1e-6f ? Vector3.right : dir.normalized;
         }
 
-        private static bool SamplePos(Vector3 pos, out float distance)
+        private static bool SamplePos(Vector3 pos, out float distance, out Vector3 sampledPosition)
         {
             if (NavMesh.SamplePosition(pos, out NavMeshHit hit, SampleRadius, NavMesh.AllAreas))
             {
                 distance = hit.distance;
+                sampledPosition = hit.position;
                 return true;
             }
             distance = -1f;
+            sampledPosition = Vector3.zero;
             return false;
+        }
+
+        // Una boca abierta no es suficiente: sus dos lados deben pertenecer a la
+        // misma region transitable. Una ruta parcial o inexistente indica que el
+        // hueco de la puerta sigue desconectando el NavMesh.
+        private static bool HasCompletePath(Vector3 start, Vector3 target)
+        {
+            NavMeshPath path = new NavMeshPath();
+            if (!NavMesh.CalculatePath(start, target, NavMesh.AllAreas, path))
+                return false;
+
+            return path.status == NavMeshPathStatus.PathComplete;
         }
 
         private static int CountTrisInside(NavMeshTriangulation tri, Bounds bounds, bool navOk)

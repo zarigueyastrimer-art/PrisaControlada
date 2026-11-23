@@ -5,6 +5,7 @@ using UnityEngine.Video;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     [DisallowMultipleComponent]
     public class VhsOverlayController : MonoBehaviour
     {

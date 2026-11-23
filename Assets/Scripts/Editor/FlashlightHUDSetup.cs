@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: crea la jerarquia REAL del icono de linterna (FlashlightHUD) en la
     // escena abierta (Prototype Old) y cablea las referencias del componente.
     // La UI queda en la Jerarquia como GameObjects normales para retocarla a

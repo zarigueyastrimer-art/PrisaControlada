@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: (1) elimina el efecto VHS (VHS_Canvas del prefab Player, que reproduce
     // un video en loop con chroma key) y (2) crea el overlay de "camara" en la
     // escena: las 4 esquinas, la bateria arriba a la derecha y el punto rojo REC

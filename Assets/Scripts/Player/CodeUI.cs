@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // HUD numerico para puertas con codigo de 4 digitos.
     [DisallowMultipleComponent]
     public class CodeUI : MonoBehaviour

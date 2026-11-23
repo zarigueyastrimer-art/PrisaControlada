@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     public class RunnerEnemy : EnemyBase
     {
         [Header("Runner Behavior")]
@@ -67,22 +68,32 @@ namespace PrisaControlada.Enemies
 
         public override void ApplyDefaultStats()
         {
-            base.ApplyDefaultStats();
             maxHealth = 40;
             moveSpeed = 4.6f;
             contactDamage = 20;
             attackCooldown = 0.9f;
             viewRange = 22f;
+            ResetHealthToMax();
         }
 
         protected override void Update()
         {
-            if (IsDead || Player == null) return;
+            if (IsDead) return;
 
             base.Update();
 
+            if (Player == null)
+            {
+                StopMoving();
+                return;
+            }
+
             // Detecta al jugador: lo ve, está cerca o le pegó (aggro).
-            bool seen = PlayerDetected();
+            // Una puerta cerrada entre ambos cancela la persecucion, aunque el
+            // enemigo haya detectado al jugador o entre en aggro.
+            bool sensed = PlayerDetected();
+            bool routeBlocked = sensed && IsPursuitBlockedByClosedDoor();
+            bool seen = sensed && !routeBlocked;
 
             _wantHeadLook = false;
 
@@ -114,7 +125,7 @@ namespace PrisaControlada.Enemies
             switch (_state)
             {
                 case RunnerState.Idle:
-                    if (IsAggroed)
+                    if (IsAggroed && !routeBlocked)
                     {
                         // Le pegaron: persigue sin esperar a mirarlo.
                         _state = RunnerState.Chase;
@@ -129,7 +140,7 @@ namespace PrisaControlada.Enemies
                     break;
 
                 case RunnerState.Watch:
-                    if (IsAggroed)
+                    if (IsAggroed && !routeBlocked)
                     {
                         // Le pegaron mientras observaba: persigue de inmediato.
                         _state = RunnerState.Chase;
@@ -149,6 +160,20 @@ namespace PrisaControlada.Enemies
                     break;
 
                 case RunnerState.Chase:
+                    // Mientras dura la persecución hay que revalidar la ruta:
+                    // la puerta puede cerrarse aunque el jugador ya no se vea.
+                    routeBlocked = IsPursuitBlockedByClosedDoor();
+                    seen = sensed && !routeBlocked;
+
+                    if (routeBlocked)
+                    {
+                        // Se conserva el estado Chase y el temporizador: al abrir
+                        // la puerta el Runner reanuda la persecucion directamente,
+                        // sin volver a Watch/Idle.
+                        StopMoving();
+                        break;
+                    }
+
                     if (seen)
                         _loseTimer = 0f;
                     else
@@ -163,6 +188,12 @@ namespace PrisaControlada.Enemies
 
                     if (PlayerWithinAttackRange())
                     {
+                        // Clavarse en el suelo al entrar en rango de ataque:
+                        // mientras haya ruta viva el agente sigue patinando
+                        // hacia el jugador a toda velocidad y lo expulsa del
+                        // mapa. Vale antes de atacar y durante el ataque.
+                        StopMoving();
+
                         if (_isAttacking)
                             _wantHeadLook = true; // Durante el ataque: solo cabeza, cuerpo quieto
                         else
@@ -171,7 +202,7 @@ namespace PrisaControlada.Enemies
                     }
                     else
                     {
-                        MoveTowards(Player.transform.position, moveSpeed);
+                        TryMoveTowardsPlayer(moveSpeed);
                         TryAttack();
                     }
                     break;

@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Menu
 {
+    //TP2 - Francisco Larrondo
     [DisallowMultipleComponent]
     public class MainMenuController : MonoBehaviour
     {

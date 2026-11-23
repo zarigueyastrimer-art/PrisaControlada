@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Menu
 {
+    //TP2 - Francisco Larrondo
     /// <summary>
     /// Menú de editor: "PrisaControlada/Menu Libro: Configurar botones".
     ///

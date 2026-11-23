@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Este proyecto corre con "Enter Play Mode Options" (EditorSettings) y la
     // recarga de dominio DESACTIVADA, asi que el estado estatico y Time.timeScale
     // sobreviven de una sesion de Play a la siguiente.

@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     public class FlashlightToggle : MonoBehaviour
     {
         public Key equipKey = Key.None;

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     [RequireComponent(typeof(Rigidbody))]
     public class FlashlightGroundPickup : PickupItem
     {

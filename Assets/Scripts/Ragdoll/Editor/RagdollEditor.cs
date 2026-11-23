@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+//TP2 - Matías Morilla
 [CustomEditor(typeof(Ragdoll))]
 public class RagdollEditor : Editor
 {

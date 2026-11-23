@@ -4,6 +4,7 @@ using UnityEngine.AI;
 
 namespace PrisaControlada.Core
 {
+    //TP2 - Matías Morilla
     // Horno de NavMesh en runtime.
     //
     // Se hornea al iniciar (solo lo que hay en escena: el hub) y despues lo
@@ -27,6 +28,11 @@ namespace PrisaControlada.Core
             _surface = GetComponent<NavMeshSurface>();
 
             _surface.collectObjects = CollectObjects.All;
+
+            // La capa DOOR (3) queda siempre fuera del bake: una puerta abierta
+            // no debe cerrar la boca ni impedir que los enemigos la cruzacen.
+            const int DoorLayer = 3;
+            _surface.layerMask &= ~(1 << DoorLayer);
 
             // Usar la geometria de los colliders, no la de los MeshRenderers.
             // Los FBX de las salas pueden tener Read/Write desactivado; al usar

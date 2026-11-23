@@ -6,6 +6,7 @@ using UnityEditor;
 
 namespace PrisaControlada.Core
 {
+    //TP2 - Matías Morilla
     public class QuitOnEscape : MonoBehaviour
     {
         private void Update()

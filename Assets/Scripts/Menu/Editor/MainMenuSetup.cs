@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Menu
 {
+    //TP2 - Francisco Larrondo
     public static class MainMenuSetup
     {
         [MenuItem("PrisaControlada/Crear Menu Principal")]

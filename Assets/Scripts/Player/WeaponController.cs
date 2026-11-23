@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class WeaponController : MonoBehaviour
     {
         [Header("References")]

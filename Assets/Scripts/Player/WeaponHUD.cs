@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     // HUD del arma: muestra las 2 imagenes (fondo + balas revolver) solo mientras
     // el arma esta equipada, y un contador arriba a la izquierda con la cantidad de
     // balas en la RESERVA (no cuenta la que esta en el arma).

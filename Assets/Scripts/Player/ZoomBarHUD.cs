@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Barra de zoom (lado derecho de la pantalla). La barra es estatica: lo
     // unico que se mueve es el marcador, que sube de abajo (sin zoom) hacia
     // arriba (zoom completo).

@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // [OBSOLETO] El HUD de stamina ya no se dibuja en runtime.
     //
     // Antes este componente creaba un canvas en runtime y pintaba una barra

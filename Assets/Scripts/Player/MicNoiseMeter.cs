@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     public class MicNoiseMeter : MonoBehaviour
     {
         [Header("References")]

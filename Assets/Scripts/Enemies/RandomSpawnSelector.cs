@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     // Elige UN EnemyLootSpawner al azar de sus hijos y lo dispara.
     //
     // Sirve para salas con varios puntos de spawn posibles (por ejemplo la

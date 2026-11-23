@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: quita (o vuelve a poner) las lineas blancas de "marco" que dejan
     // las barras:
     //

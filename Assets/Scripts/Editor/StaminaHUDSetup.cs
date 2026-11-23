@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: reemplaza la barra de stamina vieja (que se dibujaba en runtime con
     // un canvas verde) por la nueva:
     //   Player > StaminaHUD_Canvas > Contenedor (arte "Stamina contenedor.png")

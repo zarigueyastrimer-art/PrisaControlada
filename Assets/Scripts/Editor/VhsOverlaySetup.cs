@@ -8,6 +8,7 @@ using UnityEngine.Video;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     public static class VhsOverlaySetup
     {
         private const string VhsClipPath = "Assets/VHSEffectURP/Vhs insert effect (Update Read Desc Before Commenting).mp4";

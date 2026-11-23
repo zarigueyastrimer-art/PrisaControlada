@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     // Visor de notas. Muestra una imagen a pantalla completa, pausa el juego
     // y se cierra con cualquier tecla/click. Singleton, se auto-crea.
     public class NoteViewer : MonoBehaviour

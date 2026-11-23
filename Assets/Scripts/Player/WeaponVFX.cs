@@ -4,6 +4,7 @@ using UnityEngine.Rendering;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class WeaponVFX : MonoBehaviour
     {
         [Header("Textures (si vacias, se cargan de Resources/VFX/Kenney)")]

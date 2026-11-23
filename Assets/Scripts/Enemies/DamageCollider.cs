@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     public class DamageCollider : MonoBehaviour
     {
         private PlayerHealth _target;

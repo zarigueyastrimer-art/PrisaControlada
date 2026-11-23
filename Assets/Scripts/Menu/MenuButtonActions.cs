@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Menu
 {
+    //TP2 - Francisco Larrondo
     /// <summary>
     /// Da funcionalidad a los botones del menú-libro en runtime.
     ///

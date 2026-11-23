@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     // Venda medica: se agarra con F igual que cualquier otro pickup y queda en la
     // mano. Mientras esta en la mano, un click izquierdo la consume y cura 50 de
     // vida via PlayerHealth.Heal (igual que la tecla debug H, pero consumible).

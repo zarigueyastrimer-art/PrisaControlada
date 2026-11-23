@@ -5,6 +5,7 @@ using PrisaControlada.Items;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class GlockToggle : MonoBehaviour
     {
         public Key equipKey = Key.None;

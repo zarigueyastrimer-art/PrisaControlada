@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // HUD de stamina (StaminaHUD_Canvas).
     //
     // La barra (arte "Stamina barra.png") NO se achica: se desliza de derecha
@@ -91,6 +92,11 @@ namespace PrisaControlada.Player
         private float _alpha = 1f;
         private float _tiempoSinCorrer;
 
+        // Estado recibido por eventos. En Play el HUD no consulta al controller
+        // frame por frame: se suscribe a sus eventos y reacts al cambio.
+        private float _staminaNormalized = 1f;
+        private bool _staminaExhausted;
+
         // En Play es la instancia; en el Scene view es el material del asset
         // (el que se ve mientras editas).
         private Material MaterialEfectivo
@@ -159,7 +165,30 @@ namespace PrisaControlada.Player
             // Vista previa del recorte en el Scene view (al cargar la escena
             // o al recompilar).
             if (!Application.isPlaying)
+            {
                 ActualizarRecorte();
+                return;
+            }
+
+            if (player == null)
+                player = GetComponentInParent<PlayerController>();
+            if (player == null)
+                return;
+
+            player.OnStaminaChanged += HandleStaminaChanged;
+            player.OnStaminaExhausted += HandleStaminaExhausted;
+
+            _staminaNormalized = EstaminaNormalizada();
+            _staminaExhausted = player.IsStaminaExhausted;
+        }
+
+        private void OnDisable()
+        {
+            if (!Application.isPlaying || player == null)
+                return;
+
+            player.OnStaminaChanged -= HandleStaminaChanged;
+            player.OnStaminaExhausted -= HandleStaminaExhausted;
         }
 
         private void OnDestroy()
@@ -190,7 +219,17 @@ namespace PrisaControlada.Player
             if (!Mathf.Approximately(_anchoVentana, ventana.rect.width))
                 AjustarAnchoBarra();
 
-            Aplicar(EstaminaNormalizada(), Time.deltaTime);
+            Aplicar(_staminaNormalized, Time.deltaTime);
+        }
+
+        private void HandleStaminaChanged(float current, float max)
+        {
+            _staminaNormalized = max > 0f ? Mathf.Clamp01(current / max) : 1f;
+        }
+
+        private void HandleStaminaExhausted(bool exhausted)
+        {
+            _staminaExhausted = exhausted;
         }
 
         // Lo usa la tool de Editor al terminar de cablear: deja la barra en el
@@ -300,7 +339,7 @@ namespace PrisaControlada.Player
 
             Color color;
 
-            if (player != null && player.IsStaminaExhausted)
+            if (_staminaExhausted)
             {
                 // Quedo en 0 y se esta llenando: parpadeo suave rojo <-> negro
                 // hasta llegar al 100% (ahi el controller lo saca de agotada).

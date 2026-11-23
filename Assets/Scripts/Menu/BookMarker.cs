@@ -1,10 +1,12 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace PrisaControlada.Menu
 {
+    //TP2 - Francisco Larrondo
     /// <summary>
     /// Marcador (pestaña) del libro del menú.
     ///
@@ -32,7 +34,7 @@ namespace PrisaControlada.Menu
         [SerializeField] private Color selectedColor = Color.white;
 
         [Header("Texto de la pestaña")]
-        [SerializeField] private Text labelText;
+        [SerializeField] private TMP_Text labelText;
         [SerializeField] private Color labelColor = new Color(0.24f, 0.15f, 0.10f, 1f);
         [SerializeField] private int labelFontSize = 26;
 
@@ -46,6 +48,12 @@ namespace PrisaControlada.Menu
         private void Awake()
         {
             _image = GetComponent<Image>();
+
+            // Las etiquetas del menú actual son TextMeshPro. Si el campo quedó
+            // sin asignar, las encontramos entre los hijos del marcador.
+            if (labelText == null)
+                labelText = GetComponentInChildren<TMP_Text>(true);
+
             ApplyTint();
         }
 

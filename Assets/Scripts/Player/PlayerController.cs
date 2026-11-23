@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     [RequireComponent(typeof(CharacterController))]
     [DefaultExecutionOrder(100)]
     public class PlayerController : MonoBehaviour
@@ -29,9 +30,9 @@ namespace PrisaControlada.Player
         [SerializeField] private AudioClip[] footstepSounds;
 
         [Header("Footstep Speed Thresholds")]
-        [SerializeField, Min(0f)] private float idleMaxSpeed = 100f;
-        [SerializeField, Min(0f)] private float crouchMaxSpeed = 250f;
-        [SerializeField, Min(0f)] private float walkMaxSpeed = 500f;
+        [SerializeField, Min(0f)] private float idleMaxSpeed = 0.1f;
+        [SerializeField, Min(0f)] private float crouchMaxSpeed = 1.5f;
+        [SerializeField, Min(0f)] private float walkMaxSpeed = 5f;
 
         [Header("Footstep Volumes & Intervals")]
         [SerializeField, Range(0f, 1f)] private float crouchFootstepVolume = 0.4f;
@@ -58,9 +59,14 @@ namespace PrisaControlada.Player
         [SerializeField] private float staminaRegenRate = 15f;   // por segundo recuperando
         [SerializeField] private float staminaRegenDelay = 1.5f; // segundos sin correr antes de regenerar
 
+        // Delegados explicitos para que el contrato de los eventos de stamina
+        // quede documentado en el codigo y no dependa solo de Action<T>.
+        public delegate void StaminaChangedHandler(float current, float max);
+        public delegate void StaminaExhaustedHandler(bool exhausted);
+
         public event System.Action<float> OnNoiseMade;
-        public event System.Action<float, float> OnStaminaChanged; // current, max
-        public event System.Action<bool> OnStaminaExhausted; // true cuando se agota, false cuando recupera
+        public event StaminaChangedHandler OnStaminaChanged; // current, max
+        public event StaminaExhaustedHandler OnStaminaExhausted; // true cuando se agota, false cuando recupera
 
         private float _currentStamina;
         private float _lastSprintTime = -1f; // -1 indica que no se ha corrido nunca
@@ -90,7 +96,14 @@ namespace PrisaControlada.Player
         private float _crouchSwayPitch;
         private bool _controlEnabled = true;
 
-        public float HorizontalSpeed => _moveDirection.magnitude;
+        public float HorizontalSpeed
+        {
+            get
+            {
+                Vector3 horizontal = new Vector3(_moveDirection.x, 0f, _moveDirection.z);
+                return horizontal.magnitude;
+            }
+        }
         public bool IsSprinting => _isSprinting;
         public bool IsCrouching => _isCrouching;
         public bool IsGrounded => _controller.isGrounded;
@@ -251,9 +264,12 @@ namespace PrisaControlada.Player
 
         private void HandleStamina()
         {
-            bool isMovingHorizontally = _moveDirection.magnitude > 0.1f;
+            bool isMovingHorizontally = HorizontalSpeed > 0.1f;
             bool isSprintingNow = _isSprinting && isMovingHorizontally && !_isCrouching;
-            
+
+            float previousStamina = _currentStamina;
+            bool wasExhausted = _isStaminaExhausted;
+
             // Actualizar el tiempo del último sprint
             if (isSprintingNow)
             {
@@ -264,7 +280,7 @@ namespace PrisaControlada.Player
             {
                 // Agotar stamina mientras corremos
                 _currentStamina -= staminaDrainRate * Time.deltaTime;
-                
+
                 if (_currentStamina <= 0f)
                 {
                     _currentStamina = 0f;
@@ -273,13 +289,14 @@ namespace PrisaControlada.Player
             }
             else
             {
-                // Regenerar stamina si no está corriendo y no está agotada
+                // Regenerar stamina si no está corriendo. Una stamina agotada
+                // tambien se recupera: al llenarse vuelve a permitir correr.
                 float timeSinceLastSprint = Time.time - _lastSprintTime;
-                
+
                 if (timeSinceLastSprint >= staminaRegenDelay)
                 {
                     _currentStamina += staminaRegenRate * Time.deltaTime;
-                    
+
                     if (_currentStamina >= maxStamina)
                     {
                         _currentStamina = maxStamina;
@@ -288,20 +305,13 @@ namespace PrisaControlada.Player
                 }
             }
 
-            // Notificar cambio de stamina
-            OnStaminaChanged?.Invoke(_currentStamina, maxStamina);
-            
-            // Notificar estado de stamina agotada solo cuando cambie
-            if (_currentStamina <= 0f && !_isStaminaExhausted)
-            {
-                _isStaminaExhausted = true;
-                OnStaminaExhausted?.Invoke(true);
-            }
-            else if (_currentStamina >= maxStamina && _isStaminaExhausted)
-            {
-                _isStaminaExhausted = false;
-                OnStaminaExhausted?.Invoke(false);
-            }
+            // Notificar el valor solo cuando cambio realmente.
+            if (!Mathf.Approximately(previousStamina, _currentStamina))
+                OnStaminaChanged?.Invoke(_currentStamina, maxStamina);
+
+            // El evento de agotamiento se dispara una sola vez por transicion.
+            if (_isStaminaExhausted != wasExhausted)
+                OnStaminaExhausted?.Invoke(_isStaminaExhausted);
         }
 
         private float GetHealthSpeedFactor()

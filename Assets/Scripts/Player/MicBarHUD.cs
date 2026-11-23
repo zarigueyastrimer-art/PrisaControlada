@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Barra vertical del microfono (MicBarHUD_Canvas). Lee el nivel de voz de
     // MicNoiseMeter.CurrentLevel y "llena" la tira de barritas de abajo hacia
     // arriba: tres segmentos apilados (blancas abajo, amarillas en el medio,

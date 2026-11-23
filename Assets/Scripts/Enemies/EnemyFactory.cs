@@ -4,6 +4,7 @@ using UnityEngine.AI;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     public enum EnemyType
     {
         Zombie,
@@ -12,13 +13,14 @@ namespace PrisaControlada.Enemies
         Nemesis
     }
 
+    //TP2 - Agustín Labarque
     public static class EnemyFactory
     {
         private static Mesh _capsuleMesh;
 
-        // Prototipos de personaje (sin animaciones aun) para Blind y Runner.
-        private const string BlindModelPath = "Assets/MyAssets/blindPrototipo/Idle.fbx";
-        // Modelos FBX: Blind (prototipo) y Runner (modelo real con UVs + esqueleto).
+        // Modelo definitivo del Blind: FBX rigged con sus texturas y animaciones.
+        private const string BlindModelPath = "Assets/MyAssets/blind/1588e62274e84b78a9bade886f7c107f.fbx";
+        // Modelo FBX del Runner con UVs y esqueleto.
         private const string RunnerModelPath = "Assets/MyAssets/runer/Runner40k_Rigged.fbx";
         private const float ModelTargetHeight = 2f;
 

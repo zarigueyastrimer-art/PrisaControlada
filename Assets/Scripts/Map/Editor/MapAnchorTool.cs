@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using System.Text;
 using PrisaControlada.Items;
 using PrisaControlada.Map;
+using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Herramientas del mapa procedural.
     //
     // 1) "Analizar Escena": recorre Prototype.unity, mide cada sala con
@@ -23,9 +25,9 @@ namespace PrisaControlada.Editor
     //    puertas, vuelves a correr y todo queda alineado. Si una sala no tiene
     //    puertas cerca crea anclajes de referencia para que se arrastren a mano.
     //
-    // 3) "Agregar NavMeshObstacle": pone el obstacle carve en el prefab
-    //    PuertaFuncional (misma logica que NavMeshDoorBakeFix.EnsureNavMeshObstacle)
-    //    para que la puerta cerrada recorte el NavMesh.
+    // 3) "Agregar NavMeshObstacle": pone el obstacle sin carve en el prefab
+    //    PuertaFuncional (misma logica que NavMeshDoorBakeFix.EnsureNavMeshObstacle).
+    //    El panel queda fuera del NavMesh; la IA aplica el bloqueo logico.
     public static class MapAnchorTool
     {
         private const string RoomsFolder = "Assets/mapa/hospital";
@@ -123,6 +125,12 @@ namespace PrisaControlada.Editor
                     return;
                 }
 
+                NavMeshModifier modifier = panel.GetComponent<NavMeshModifier>();
+                if (modifier == null)
+                    modifier = panel.gameObject.AddComponent<NavMeshModifier>();
+                modifier.ignoreFromBuild = true;
+                modifier.applyToChildren = false;
+
                 NavMeshObstacle obs = panel.GetComponent<NavMeshObstacle>();
                 if (obs == null)
                     obs = panel.gameObject.AddComponent<NavMeshObstacle>();
@@ -149,7 +157,7 @@ namespace PrisaControlada.Editor
                 }
 
                 obs.shape = NavMeshObstacleShape.Box;
-                obs.carving = true;
+                obs.carving = false;
                 obs.carveOnlyStationary = true;
                 obs.enabled = true;
 
@@ -159,7 +167,7 @@ namespace PrisaControlada.Editor
                           DoorPrefabPath + ". DoorController lo busca solo en el Awake y lo " +
                           "habilita/deshabilita al abrir y cerrar la puerta.");
                 EditorUtility.DisplayDialog("NavMesh Obstacle",
-                    "Obstacle carve agregado al panel '" + panel.name + "'.\n\n" +
+                    "Obstacle sin carve agregado al panel '" + panel.name + "'.\n\n" +
                     "Las instancias de la escena se actualizan solas; guarda la escena (Ctrl+S).", "OK");
             }
             finally

@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     public static class EnemySceneSetup
     {
         public static void AddTestEnemies()

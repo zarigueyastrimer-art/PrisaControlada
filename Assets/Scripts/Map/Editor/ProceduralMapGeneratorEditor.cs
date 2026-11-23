@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Inspector del generador de mapa: ademas de todos los campos normales,
     // muestra las probabilidades por tipo como 5 SLIDERS de 0 a 100% que
     // siempre suman 100: si bajas uno, los demas suben en la misma proporcion.

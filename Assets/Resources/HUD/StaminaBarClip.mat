@@ -37,8 +37,8 @@ Material:
     - _StencilWriteMask: 255
     - _UseUIAlphaClip: 0
     m_Colors:
-    - _ClipMax: {r: 720, g: 24.00003, b: 0, a: 0}
-    - _ClipMin: {r: 0, g: 4.0000305, b: 0, a: 0}
+    - _ClipMax: {r: 719.9999, g: 24, b: 0, a: 0}
+    - _ClipMin: {r: -0.000030517578, g: 4, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _RectSize: {r: 733.824, g: 19, b: 0, a: 0}
   m_BuildTextureStacks: []

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//TP2 - Matías Morilla
 [CreateAssetMenu(fileName = "RigType", menuName = "Angry Koala/Ragdoll/New Rig Type", order = 2)]
 public class RigType : ScriptableObject
 {

@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     public class BlindEnemy : EnemyBase
     {
         private enum BlindState { Wander, Stalk, Chase }
@@ -40,7 +41,7 @@ namespace PrisaControlada.Enemies
         private MicNoiseMeter _mic;
         private BlindState _state = BlindState.Wander;
         private bool _warned;
-        private float _lastHeardTime = -999f;
+        private float _soundSilenceTimer;
         private Vector3 _lastSoundPos;
         private float _loseTimer;
         private Vector3 _wanderTarget;
@@ -49,14 +50,9 @@ namespace PrisaControlada.Enemies
 
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
+        // El struct compartido NoiseStamp conserva tiempo, nivel y posicion de
+        // cada ruido percibido sin acoplar el estado al mundo del juego.
         private readonly List<NoiseStamp> _noiseStamps = new List<NoiseStamp>();
-
-        private struct NoiseStamp
-        {
-            public float time;
-            public float level;
-            public Vector3 position;
-        }
 
         public bool Warned => _warned;
 
@@ -81,12 +77,12 @@ namespace PrisaControlada.Enemies
 
         public override void ApplyDefaultStats()
         {
-            base.ApplyDefaultStats();
             maxHealth = 300;
             moveSpeed = 1.6f;
             contactDamage = 40;
             attackCooldown = 0.8f;
             viewRange = 0f;
+            ResetHealthToMax();
         }
 
         protected override void Start()
@@ -128,31 +124,37 @@ namespace PrisaControlada.Enemies
             float micLevel = GetMicLevel();
             bool isScreaming = micLevel >= screamHeardLevel;
             bool isHearing = footstepLevel >= minHeardLevel || micLevel >= minHeardLevel;
+            bool routeBlocked = (isHearing || _state == BlindState.Stalk || _state == BlindState.Chase)
+                && IsPursuitBlockedByClosedDoor();
 
-            if (isScreaming)
+            if (isScreaming || isHearing)
             {
-                _lastHeardTime = Time.time;
                 if (Player != null) _lastSoundPos = Player.transform.position;
-                _loseTimer = 0f;
 
-                if (_state == BlindState.Wander)
+                // Mientras una puerta cerrada bloquea la ruta, los temporizadores
+                // de perdida quedan congelados: ni avanzan con el silencio ni se
+                // reinician porque el jugador siga haciendo ruido.
+                if (!routeBlocked)
                 {
-                    _state = _warned ? BlindState.Chase : BlindState.Stalk;
+                    _soundSilenceTimer = 0f;
+                    _loseTimer = 0f;
+
+                    if (_state == BlindState.Wander)
+                    {
+                        if (isScreaming)
+                            _state = _warned ? BlindState.Chase : BlindState.Stalk;
+                        else
+                            _state = BlindState.Chase;
+                    }
                 }
             }
-            else if (isHearing)
+            else if (!routeBlocked)
             {
-                _lastHeardTime = Time.time;
-                if (Player != null) _lastSoundPos = Player.transform.position;
-                _loseTimer = 0f;
+                // El silencio solo avanza cuando la ruta no esta bloqueada por
+                // una puerta. El tiempo de espera de Stalk queda congelado igual
+                // que el timer de perdida de Chase.
+                _soundSilenceTimer += Time.deltaTime;
 
-                if (_state == BlindState.Wander)
-                {
-                    _state = BlindState.Chase;
-                }
-            }
-            else
-            {
                 if (_state == BlindState.Chase)
                 {
                     _loseTimer += Time.deltaTime;
@@ -162,7 +164,7 @@ namespace PrisaControlada.Enemies
                         PickWanderTarget();
                     }
                 }
-                else if (_state == BlindState.Stalk && Time.time - _lastHeardTime > noiseMemorySeconds)
+                else if (_state == BlindState.Stalk && _soundSilenceTimer >= noiseMemorySeconds)
                 {
                     _state = BlindState.Wander;
                     PickWanderTarget();
@@ -197,7 +199,7 @@ namespace PrisaControlada.Enemies
             if (Time.time >= _nextWanderTime || Reached(_wanderTarget))
                 PickWanderTarget();
 
-            MoveTowards(_wanderTarget, wanderSpeed, false);
+            TryMoveTowardsPosition(_wanderTarget, wanderSpeed, false);
         }
 
         private void PickWanderTarget()
@@ -215,12 +217,25 @@ namespace PrisaControlada.Enemies
 
         private void UpdateStalk()
         {
-            if (_lastSoundPos != Vector3.zero)
-                MoveTowards(_lastSoundPos, stalkSpeed);
+            if (IsPursuitBlockedByClosedDoor())
+            {
+                StopMoving();
+                return;
+            }
+
+            if (_lastSoundPos != Vector3.zero &&
+                !TryMoveTowardsPosition(_lastSoundPos, stalkSpeed))
+            {
+                return;
+            }
 
             if (!PlayerIsLookingAt(transform.position, viewEscapeAngle))
             {
-                TeleportBehindPlayer();
+                // Si el teletransporte no puede hacerse sin cruzar una puerta,
+                // el Blind conserva el estado Stalk y reintenta mas tarde.
+                if (!TeleportBehindPlayer())
+                    return;
+
                 _warned = true;
                 _state = BlindState.Wander;
                 PickWanderTarget();
@@ -229,25 +244,45 @@ namespace PrisaControlada.Enemies
 
         private void UpdateChase()
         {
-            if (Player == null) return;
-            MoveTowards(Player.transform.position, chaseSpeed);
+            if (Player == null)
+            {
+                StopMoving();
+                return;
+            }
+
+            if (!TryMoveTowardsPlayer(chaseSpeed))
+                return;
+
             TryAttack();
         }
 
-        private void TeleportBehindPlayer()
+        private bool TeleportBehindPlayer()
         {
-            if (Player == null) return;
+            if (Player == null || Agent == null || !Agent.isOnNavMesh)
+                return false;
 
             Vector3 behind = Player.transform.position - Player.transform.forward * teleportDistance;
-            behind += Random.insideUnitSphere * 0.3f;
+            Vector3 jitter = Random.insideUnitSphere * 0.3f;
+            behind.x += jitter.x;
+            behind.z += jitter.z;
+            behind.y = Player.transform.position.y;
 
             StopMoving();
 
-            if (Physics.Raycast(behind + Vector3.up * 10f, Vector3.down,
-                    out RaycastHit hit, 20f, ~0, QueryTriggerInteraction.Ignore))
-                behind.y = hit.point.y + 0.05f;
+            // El Warp es un salto recto. Se valida el punto exacto sobre el
+            // NavMesh y se rechaza cualquier salto que atraviese una puerta,
+            // tanto desde el enemigo como desde el lado del jugador.
+            if (!TryGetValidatedNavMeshDestination(behind, 0.75f, out Vector3 validatedTarget))
+                return false;
 
-            Agent.Warp(behind);
+            if (IsDirectSegmentBlockedByClosedDoor(transform.position, validatedTarget))
+                return false;
+
+            if (IsDirectSegmentBlockedByClosedDoor(Player.transform.position, validatedTarget))
+                return false;
+
+            if (!Agent.Warp(validatedTarget))
+                return false;
 
             Vector3 dir = Player.transform.position - transform.position;
             dir.y = 0f;
@@ -258,6 +293,7 @@ namespace PrisaControlada.Enemies
                 voiceSource.PlayOneShot(hearYouClip);
 
             Debug.Log("[BlindEnemy] I can hear you");
+            return true;
         }
 
         private void PruneNoise()

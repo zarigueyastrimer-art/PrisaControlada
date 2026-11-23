@@ -1,5 +1,6 @@
 using UnityEngine;
 
+//TP2 - Matías Morilla
 public class RagdollComponent : MonoBehaviour
 {
     [SerializeField] private Rigidbody componentRigidbody;
@@ -7,6 +8,7 @@ public class RagdollComponent : MonoBehaviour
     [SerializeField] private Collider componentCollider;
     public Collider ComponentCollider => componentCollider;
 
+    //TP2 - Matías Morilla
     public enum BodyParts { Head, CenterMass, Arm, Leg };
     [Space]
     [SerializeField] private BodyParts bodyPart;

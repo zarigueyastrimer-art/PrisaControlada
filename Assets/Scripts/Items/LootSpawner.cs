@@ -1,8 +1,10 @@
 using UnityEngine;
+using PrisaControlada.Core;
 using PrisaControlada.Map;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     // Spawner de loot: un GameObject vacio que, al invocar TrySpawn(), elige un
     // item de la tabla segun sus pesos y lo instancia en el mundo. Tambien existe
     // un peso de "nada" que compite en el mismo sorteo, de modo que el spawner puede
@@ -16,6 +18,7 @@ namespace PrisaControlada.Items
     // para que se destruyan automáticamente cuando la sala se despawn.
     public class LootSpawner : MonoBehaviour
     {
+        //TP2 - Francisco Larrondo
         [System.Serializable]
         public class LootEntry
         {
@@ -121,38 +124,26 @@ namespace PrisaControlada.Items
             Gizmos.DrawWireCube(transform.position, Vector3.one * 0.125f);
         }
 
-        // Devuelve la entrada ganadora segun pesos, o null si gano 'nada'.
+        // Arma la tabla generica y sortea. El peso de 'nada' se carga como un
+        // elemento mas de la tabla (con item null), asi compite en el mismo
+        // sorteo sin codigo especial. Devuelve null si gano 'nada'.
+        // Es la misma WeightedTable<T> que usa el generador de mapas, con
+        // otro T adentro.
         private LootEntry RollEntry()
         {
-            float total = nothingWeight;
+            WeightedTable<LootEntry> table = new WeightedTable<LootEntry>();
+
             if (lootTable != null)
             {
                 foreach (LootEntry e in lootTable)
                     if (e != null && e.prefab != null)
-                        total += Mathf.Max(0f, e.weight);
+                        table.Add(e, e.weight);
             }
 
-            // Sin nada que soltar.
-            if (total <= 0f) return null;
+            // Peso del resultado 'no sale nada': un null cargado en la tabla.
+            table.Add(null, nothingWeight);
 
-            float roll = Random.Range(0f, total);
-
-            // Resta el peso de 'nada': si cae aca, no suelta nada.
-            roll -= nothingWeight;
-            if (roll < 0f) return null;
-
-            if (lootTable != null)
-            {
-                foreach (LootEntry e in lootTable)
-                {
-                    if (e == null || e.prefab == null) continue;
-                    float w = Mathf.Max(0f, e.weight);
-                    if (roll < w) return e;
-                    roll -= w;
-                }
-            }
-
-            return null;
+            return table.Roll();
         }
     }
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     // Director de sala: limita cuantos enemigos puede haber a la vez en una sala
     // usando un PRESUPUESTO DE COSTOS. Cada enemigo tiene un costo; la sala tiene
     // un costo maximo. Cuando la suma de los enemigos vivos alcanza el tope, no

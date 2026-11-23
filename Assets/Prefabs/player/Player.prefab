@@ -5830,8 +5830,8 @@ CharacterController:
   m_Height: 1.8
   m_Radius: 0.4
   m_SlopeLimit: 45
-  m_StepOffset: 0.3
-  m_SkinWidth: 0.08
+  m_StepOffset: 0.15
+  m_SkinWidth: 0.04
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!114 &1378558009660947063
@@ -5861,9 +5861,9 @@ MonoBehaviour:
   crouchSwayPitch: 4
   footstepAudioSource: {fileID: 0}
   footstepSounds: []
-  idleMaxSpeed: 100
-  crouchMaxSpeed: 250
-  walkMaxSpeed: 500
+  idleMaxSpeed: 0.1
+  crouchMaxSpeed: 1.5
+  walkMaxSpeed: 5
   crouchFootstepVolume: 0.4
   walkFootstepVolume: 0.5
   runFootstepVolume: 0.8

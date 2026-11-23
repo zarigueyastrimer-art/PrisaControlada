@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     public class NemesisEnemy : EnemyBase
     {
         [Header("Nemesis / Patrol")]
@@ -16,7 +17,10 @@ namespace PrisaControlada.Enemies
 
         private float _progress;
         private Vector3 _target;
+        private Vector3 _lastPlayerTarget;
         private float _waitUntil;
+        private bool _isPursuingPlayer;
+        private bool _waitingForDoor;
 
         [Header("Audio (3D loop)")]
         [SerializeField] private AudioClip nemesisClip;
@@ -31,6 +35,10 @@ namespace PrisaControlada.Enemies
             get => _progress;
             set => _progress = Mathf.Clamp01(value);
         }
+
+        public bool IsPursuingPlayer => _isPursuingPlayer;
+        public bool IsWaitingForDoor => _waitingForDoor;
+        public Vector3 LastPlayerTarget => _lastPlayerTarget;
 
         protected override void Awake()
         {
@@ -49,14 +57,20 @@ namespace PrisaControlada.Enemies
                 _nemesisSource.Play();
         }
 
+        protected override void Start()
+        {
+            base.Start();
+            PickTarget();
+        }
+
         public override void ApplyDefaultStats()
         {
-            base.ApplyDefaultStats();
             maxHealth = int.MaxValue;
             moveSpeed = patrolSpeed;
             contactDamage = 9999;
             attackRange = 1.6f;
             attackCooldown = 0.5f;
+            ResetHealthToMax();
         }
 
         public override void TakeDamage(int amount, Vector3 hitDirection = default, Collider hitBone = null, Vector3 hitPoint = default)
@@ -73,11 +87,43 @@ namespace PrisaControlada.Enemies
 
             base.Update();
 
-            if (CanSeePlayer() && Player != null)
+            bool seesPlayer = Player != null && CanSeePlayer();
+            if (seesPlayer)
             {
-                _target = Player.transform.position;
+                _lastPlayerTarget = Player.transform.position;
+                _isPursuingPlayer = true;
+                _waitingForDoor = false;
+                _target = _lastPlayerTarget;
             }
-            else if (Time.time >= _waitUntil && Reached(_target))
+
+            // La ruta se evalua contra el ultimo objetivo visto, no contra la
+            // linea de vista actual. Asi el Nemesis conserva la intencion de
+            // perseguir y puede reanudar el mismo destino al abrir la puerta.
+            PursuitRouteStatus routeStatus = PursuitRouteStatus.InvalidOrUnavailable;
+            Vector3 validatedTarget = Vector3.zero;
+            if (_isPursuingPlayer && _lastPlayerTarget != Vector3.zero)
+            {
+                routeStatus = EvaluatePursuitRouteTo(_lastPlayerTarget, out validatedTarget);
+            }
+
+            bool blockedByClosedDoor = routeStatus == PursuitRouteStatus.BlockedByClosedDoor;
+            if (blockedByClosedDoor)
+            {
+                _isPursuingPlayer = true;
+                _waitingForDoor = true;
+                StopMoving();
+                return;
+            }
+
+            // Si ya no ve al jugador, sigue intentando llegar al ultimo objetivo
+            // hasta alcanzarlo. Perder la linea de vista no borra la intencion.
+            if (_isPursuingPlayer && !seesPlayer && Reached(_lastPlayerTarget))
+            {
+                _isPursuingPlayer = false;
+                _waitingForDoor = false;
+                PickTarget();
+            }
+            else if (!_isPursuingPlayer && Time.time >= _waitUntil && Reached(_target))
             {
                 PickTarget();
             }
@@ -89,7 +135,26 @@ namespace PrisaControlada.Enemies
             float proximity = Mathf.Clamp01(1f - dist / proximityDistance);
             float speed = patrolSpeed * (1f + proximity * proximityBoost) * (1f + _progress * progressSpeedFactor);
 
-            MoveTowards(_target, speed);
+            if (_isPursuingPlayer)
+            {
+                if (routeStatus == PursuitRouteStatus.Ready)
+                {
+                    _waitingForDoor = false;
+                    if (!TryMoveTowardsPosition(validatedTarget, speed))
+                        StopMoving();
+                }
+                else
+                {
+                    // Una ruta invalida falla cerrada, pero no borra la intencion
+                    // ni el ultimo objetivo: podria volver a estar disponible.
+                    StopMoving();
+                }
+            }
+            else
+            {
+                TryMoveTowardsPosition(_target, speed);
+            }
+
             TryAttack();
         }
 

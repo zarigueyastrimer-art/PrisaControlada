@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: pone los bordes de los slots (el arte "Slots.png" de
     // Assets/VHSEffectURP/hud/hudUpdate) como hijos de los slots existentes
     // del inventario (Player > InventoryHUD_Canvas > SlotsBar > Slot1 | Slot2).

@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     public class KeyItem : PickupItem
     {
         [Header("Key")]

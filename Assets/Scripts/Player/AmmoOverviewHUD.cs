@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // HUD de la informacion del objeto que el jugador tiene en la mano.
     //
     // - Ningun icono de arma/linterna queda visible normalmente.

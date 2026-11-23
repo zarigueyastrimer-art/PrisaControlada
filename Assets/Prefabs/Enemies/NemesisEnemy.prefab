@@ -212,12 +212,33 @@ MonoBehaviour:
   damageRadius: 0.6
   damageOffset: 0.7
   damageHeight: 1.1
-  showAttackDebug: 1
+  showAttackDebug: 0
+  headshotRadius: 0.2
+  headBoneName: mixamorig:Head
   viewRange: 16
   viewAngle: 100
   visionMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  pursuitPathRefreshInterval: 0.2
+  pursuitTargetSampleRadius: 0.75
+  movementTargetSampleRadius: 1.5
+  navMeshSnapRadius: 0.75
+  closedDoorPathPadding: 0.05
+  minPursuitSeparation: 0.95
+  hardStopAcceleration: 1000
+  aggroOnDamage: 1
+  aggroDuration: 8
+  heartbeatClip: {fileID: 0}
+  heartbeatVolume: 1
+  heartbeatMinDistance: 2
+  heartbeatMaxDistance: 25
+  heartbeatRolloff: 2
+  footstepClips: []
+  footstepVolume: 1
+  footstepInterval: 0.5
+  footstepMinDistance: 2
+  footstepMaxDistance: 15
   patrolSpeed: 1.4
   patrolRadius: 25
   proximityBoost: 3
@@ -226,6 +247,10 @@ MonoBehaviour:
   waypointRadius: 1.5
   waitMin: 0.8
   waitMax: 2.5
+  nemesisClip: {fileID: 0}
+  nemesisVolume: 1
+  nemesisMinDistance: 2
+  nemesisMaxDistance: 25
 --- !u!1 &7622779198656732511
 GameObject:
   m_ObjectHideFlags: 0

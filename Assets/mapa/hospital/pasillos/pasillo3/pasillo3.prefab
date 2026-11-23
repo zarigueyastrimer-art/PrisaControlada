@@ -767,6 +767,8 @@ MonoBehaviour:
   anchorIn: {fileID: 9126358834493128512}
   anchorsOut:
   - {fileID: 861193545505387318}
+  lockExit: 0
+  lockExitWithCode: 0
 --- !u!1 &7858100851871221119
 GameObject:
   m_ObjectHideFlags: 0
@@ -1532,6 +1534,14 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
+    - target: {fileID: -4256369687237478791, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 118.95033
+      objectReference: {fileID: 0}
+    - target: {fileID: -4256369687237478791, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -3.196
+      objectReference: {fileID: 0}
     - target: {fileID: -4238000617494118538, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -1676,6 +1686,18 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
+    - target: {fileID: 1122407407559467978, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 78.293
+      objectReference: {fileID: 0}
+    - target: {fileID: 1122407407559467978, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.00000011921
+      objectReference: {fileID: 0}
+    - target: {fileID: 1122407407559467978, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.498
+      objectReference: {fileID: 0}
     - target: {fileID: 1535470029083308234, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -1723,6 +1745,10 @@ PrefabInstance:
     - target: {fileID: 3098283743349514512, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 3238788028302650258, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3356150724151993104, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -2034,6 +2060,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -7664536980775425624, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5663632870369478583}
+    - targetCorrespondingSourceObject: {fileID: -8966055033232940414, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 781687641295412286}
     - targetCorrespondingSourceObject: {fileID: 4935236488679060485, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1758084827533576147}
@@ -3024,6 +3053,32 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.0045000077, y: 0.0040000095, z: 0.009208935}
   m_Center: {x: 0.000000019092113, y: 0.0006755685, z: 0.00085527945}
+--- !u!1 &5494950642567299152 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -8966055033232940414, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}
+  m_PrefabInstance: {fileID: 5752169905064207058}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &781687641295412286
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5494950642567299152}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.1980001, y: 2.4197488, z: 0.1536553}
+  m_Center: {x: -9.2839925e-10, y: -1.2098742, z: 0.0155796595}
 --- !u!1 &5504470929165980998 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 265746634916001684, guid: b928fdf259d966d4793bda8ac3d8754a, type: 3}

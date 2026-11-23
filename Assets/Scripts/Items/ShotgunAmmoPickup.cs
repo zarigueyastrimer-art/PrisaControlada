@@ -3,10 +3,11 @@ using UnityEngine;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     // Caja de balas de escopeta: al agarrarla desaparece y suma cartuchos (reserva)
     // a la escopeta del jugador. No va al inventario ni a la mano.
     [RequireComponent(typeof(Collider))]
-    public class ShotgunAmmoPickup : MonoBehaviour
+    public class ShotgunAmmoPickup : MonoBehaviour, IInteractable
     {
         [Header("Shotgun Ammo Box")]
         [Tooltip("Rango de cartuchos que suma al agarrarla (aleatorio entre min y max).")]
@@ -30,6 +31,23 @@ namespace PrisaControlada.Items
             _lastCollected = n;
             st.AddReserveShells(n);
             return true;
+        }
+
+        // ---- IInteractable ----
+        public bool IsGrabbable => true;
+        public bool IsValidTarget(Collider hitCollider) => true;
+
+        public bool TryInteract(InventoryController inventory, Collider hitCollider)
+        {
+            bool collected = TryCollect();
+            if (collected)
+            {
+                Debug.Log($"<color=#77ff77>[ShotgunAmmoPickup] Caja de balas agarrada: +{Amount} cartuchos. Item destruido.</color>");
+                Destroy(gameObject);
+                inventory?.NotifyAmmoCollected();
+            }
+
+            return collected;
         }
     }
 }

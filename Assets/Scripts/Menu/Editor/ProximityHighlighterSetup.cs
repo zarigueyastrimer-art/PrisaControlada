@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public static class ProximityHighlighterSetup
     {
         [MenuItem("PrisaControlada/Configurar Resaltador de Objetos")]

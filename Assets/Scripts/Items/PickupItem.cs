@@ -1,9 +1,11 @@
+using PrisaControlada.Player;
 using UnityEngine;
 
 namespace PrisaControlada.Items
 {
+    //TP2 - Francisco Larrondo
     [RequireComponent(typeof(Rigidbody))]
-    public class PickupItem : MonoBehaviour
+    public class PickupItem : MonoBehaviour, IInteractable
     {
         [Header("Hold Lag")]
         [SerializeField] private float followSpeed = 12f;
@@ -22,6 +24,8 @@ namespace PrisaControlada.Items
         private float _objectRadius;
         private Transform _playerTransform;
 
+        // Get/set: cualquiera puede leer si el objeto esta en la mano, pero el
+        // setter es privado: solo esta clase lo cambia.
         public bool IsHeld { get; private set; }
 
         public virtual bool IsBusy => false;
@@ -69,6 +73,28 @@ namespace PrisaControlada.Items
 
         public virtual void OnStoredInSlot()
         {
+        }
+
+        // ---- IInteractable ----
+
+        // Todo pickup (armas, linterna, llave, vendas...) se levanta del
+        // suelo, asi que lleva flecha de proximidad. Heredado por las
+        // subclases: WeaponPickup, BandageItem, KeyItem, etc.
+        public bool IsGrabbable => true;
+
+        // Cualquier parte del objeto es agarrable.
+        public bool IsValidTarget(Collider hitCollider)
+        {
+            return true;
+        }
+
+        // La logica de agarrar vive en el inventario (el que tiene la mano y
+        // los slots). Si ya hay algo en la mano, no se agarra nada: el objeto
+        // sigue ahi y el jugador puede cambiar de slot o tirar lo que sostiene.
+        public bool TryInteract(InventoryController inventory, Collider hitCollider)
+        {
+            if (inventory == null) return false;
+            return inventory.TryGrabItem(this);
         }
 
         private void Release()

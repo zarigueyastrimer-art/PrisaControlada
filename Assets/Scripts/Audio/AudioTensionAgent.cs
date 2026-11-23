@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Audio
 {
+    //TP2 - Matías Morilla
     // Agente de audio de ambiente. Decide que clips reproducir segun un medidor
     // de "tension" (0..1) que va bajando solo y se modifica por eventos del juego.
     // - Ambiente base: loop permanente.

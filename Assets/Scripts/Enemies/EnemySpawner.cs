@@ -5,6 +5,7 @@ using PrisaControlada.Map;
 
 namespace PrisaControlada.Enemies
 {
+    //TP2 - Agustín Labarque
     [Serializable]
     public class EnemySpawnPoint
     {
@@ -13,6 +14,7 @@ namespace PrisaControlada.Enemies
         public bool spawnOnStart = true;
     }
 
+    //TP2 - Agustín Labarque
     public class EnemySpawner : MonoBehaviour
     {
         [SerializeField] private EnemySpawnPoint[] spawnPoints = Array.Empty<EnemySpawnPoint>();
@@ -35,7 +37,7 @@ namespace PrisaControlada.Enemies
             foreach (EnemySpawnPoint point in spawnPoints)
             {
                 if (point != null && point.spawnOnStart)
-                    _spawned.Add(Spawn(point.type, point.position));
+                    Spawn(point.type, point.position);
             }
         }
 

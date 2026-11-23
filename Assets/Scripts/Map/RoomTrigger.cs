@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Map
 {
+    //TP2 - Matías Morilla
     // Trigger de sala: cuando el JUGADOR entra en la sala le avisa al generador
     // para que corra la ventana de streaming (crea salas por delante y borra las
     // que quedaron detras). No hace nada mas: la seleccion de salas, las puertas

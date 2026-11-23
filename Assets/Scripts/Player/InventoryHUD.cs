@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     public class InventoryHUD : MonoBehaviour
     {
         private const int SlotCount = 2;

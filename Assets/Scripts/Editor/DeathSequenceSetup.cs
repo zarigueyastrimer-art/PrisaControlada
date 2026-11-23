@@ -8,6 +8,7 @@ using UnityEngine.Video;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     public static class DeathSequenceSetup
     {
         private const string BrokenShaderPath = "Assets/VHSEffectURP/dead/CameraBroken.shader";

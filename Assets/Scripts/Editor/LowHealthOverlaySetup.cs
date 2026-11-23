@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     public static class LowHealthOverlaySetup
     {
         private const string TexturePath = "Assets/VHSEffectURP/health/lowHealth.png";

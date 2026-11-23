@@ -95,15 +95,15 @@ MonoBehaviour:
   maxHealth: 40
   moveSpeed: 8
   turnSpeed: 8
-  contactDamage: 20
+  contactDamage: 15
   attackCooldown: 0.9
   attackRange: 1.5
   attackWindup: 0.5
   attackActiveTime: 0.2
-  damageRadius: 0.6
-  damageOffset: 0.7
+  damageRadius: 1
+  damageOffset: 1
   damageHeight: 1.1
-  showAttackDebug: 1
+  showAttackDebug: 0
   headshotRadius: 0.2
   headBoneName: mixamorig:Head
   viewRange: 22
@@ -111,6 +111,15 @@ MonoBehaviour:
   visionMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  pursuitPathRefreshInterval: 0.2
+  pursuitTargetSampleRadius: 0.75
+  movementTargetSampleRadius: 1.5
+  navMeshSnapRadius: 0.75
+  closedDoorPathPadding: 0.05
+  minPursuitSeparation: 0.95
+  hardStopAcceleration: 1000
+  aggroOnDamage: 1
+  aggroDuration: 8
   heartbeatClip: {fileID: 8300000, guid: 5ebbafd4de4b8bb49b1abae472a30a2c, type: 3}
   heartbeatVolume: 0.05
   heartbeatMinDistance: 2

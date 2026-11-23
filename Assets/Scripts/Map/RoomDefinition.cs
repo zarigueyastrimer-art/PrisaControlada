@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Map
 {
+    //TP2 - Matías Morilla
     // Datos de una sala para el mapa procedural. Va SIEMPRE en la RAIZ del
     // prefab de sala (no en un hijo), porque el generator lo busca con
     // GetComponent en la instancia viva.
@@ -39,6 +40,11 @@ namespace PrisaControlada.Map
                  "con llave (lockedDoorPrefab del generador). El jugador necesita el KeyPickup " +
                  "correspondiente en la mano para abrirla.")]
         public bool lockExit = false;
+
+        [Tooltip("Si esta marcada, la puerta de SALIDA de esta sala se instancia como " +
+                 "puerta con codigo (codeDoorPrefab del generador). El codigo lo resuelve " +
+                 "PuzzleCodeController en la sala.")]
+        public bool lockExitWithCode = false;
 
         // Primera salida no nula. Es la que usa el generator para encadenar.
         public Transform PrimaryOut

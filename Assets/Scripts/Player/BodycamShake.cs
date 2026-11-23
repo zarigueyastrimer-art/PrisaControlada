@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     [DefaultExecutionOrder(1000)]
     [RequireComponent(typeof(Camera))]
     public class BodycamShake : MonoBehaviour

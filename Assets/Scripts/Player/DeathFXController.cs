@@ -5,6 +5,7 @@ using UnityEngine.Video;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Canvas))]
     public class DeathFXController : MonoBehaviour
@@ -107,7 +108,15 @@ namespace PrisaControlada.Player
             yield return StartCoroutine(BreakFlash());
             yield return StartCoroutine(BrokenCameraIn());
             yield return new WaitForSeconds(glitchDelay);
-            yield return StartCoroutine(PlayGlitch());
+
+            // Si falta el video o el clip, la partida debe terminar igual. Por
+            // eso la notificacion y la pantalla de derrota se centralizan aqui.
+            if (_video != null && glitchClip != null)
+                yield return StartCoroutine(PlayGlitch());
+
+            OnGlitchFinished?.Invoke();
+            if (gameOver != null)
+                gameOver.Show();
         }
 
         private IEnumerator BreakFlash()
@@ -181,10 +190,6 @@ namespace PrisaControlada.Player
                 yield return null;
             }
             glitchImage.color = new Color(1f, 1f, 1f, 0f);
-
-            OnGlitchFinished?.Invoke();
-            if (gameOver != null)
-                gameOver.Show();
         }
     }
 }

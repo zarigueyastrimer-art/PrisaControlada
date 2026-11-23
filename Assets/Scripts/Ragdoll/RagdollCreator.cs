@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+//TP2 - Matías Morilla
 public class RagdollCreator : MonoBehaviour
 {
     private Rig rig;
@@ -284,6 +285,7 @@ public class RagdollCreator : MonoBehaviour
 
     #region Utility
 
+    //TP2 - Matías Morilla
     private class RagdollPart
     {
         public string name;

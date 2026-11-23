@@ -1,6 +1,7 @@
 using System.Linq;
 using UnityEngine;
 
+//TP2 - Matías Morilla
 public class Rig
 {
     public Transform Pelvis { get; private set; }
@@ -40,9 +41,11 @@ public class Rig
             return;
         }
 
-        for(int i = 0; i < RigTypes.Length; i++)
+        RigType[] availableRigs = RigTypes;
+        for(int i = 0; i < availableRigs.Length; i++)
         {
-            if(skinnedMeshRenderer.rootBone.name == RigTypes[i].Pelvis)
+            if(skinnedMeshRenderer.rootBone != null &&
+               skinnedMeshRenderer.rootBone.name == availableRigs[i].Pelvis)
             {
                 rigIndex = i;
                 break;
@@ -56,18 +59,28 @@ public class Rig
         }
     }
 
+    // FindRecursive es la extension de TransformExtensions: busca el hueso por
+    // nombre aunque este anidado adentro de otro, no solo en el primer nivel.
     public void GetParts(Transform transform)
     {
-        Pelvis = transform.FindRecursive(RigTypes[rigIndex].Pelvis);
-        LeftHips = transform.FindRecursive(RigTypes[rigIndex].LeftHips);
-        LeftKnee = transform.FindRecursive(RigTypes[rigIndex].LeftKnee);
-        RightHips = transform.FindRecursive(RigTypes[rigIndex].RightHips);
-        RightKnee = transform.FindRecursive(RigTypes[rigIndex].RightKnee);
-        LeftArm = transform.FindRecursive(RigTypes[rigIndex].LeftArm);
-        LeftElbow = transform.FindRecursive(RigTypes[rigIndex].LeftElbow);
-        RightArm = transform.FindRecursive(RigTypes[rigIndex].RightArm);
-        RightElbow = transform.FindRecursive(RigTypes[rigIndex].RightElbow);
-        MiddleSpine = transform.FindRecursive(RigTypes[rigIndex].MiddleSpine);
-        Head = transform.FindRecursive(RigTypes[rigIndex].Head);
+        RigType[] availableRigs = RigTypes;
+        if (rigIndex < 0 || rigIndex >= availableRigs.Length)
+        {
+            Debug.LogWarning("No se pueden obtener las partes: el rig no fue reconocido.");
+            return;
+        }
+
+        RigType rig = availableRigs[rigIndex];
+        Pelvis = transform.FindRecursive(rig.Pelvis);
+        LeftHips = transform.FindRecursive(rig.LeftHips);
+        LeftKnee = transform.FindRecursive(rig.LeftKnee);
+        RightHips = transform.FindRecursive(rig.RightHips);
+        RightKnee = transform.FindRecursive(rig.RightKnee);
+        LeftArm = transform.FindRecursive(rig.LeftArm);
+        LeftElbow = transform.FindRecursive(rig.LeftElbow);
+        RightArm = transform.FindRecursive(rig.RightArm);
+        RightElbow = transform.FindRecursive(rig.RightElbow);
+        MiddleSpine = transform.FindRecursive(rig.MiddleSpine);
+        Head = transform.FindRecursive(rig.Head);
     }
 }

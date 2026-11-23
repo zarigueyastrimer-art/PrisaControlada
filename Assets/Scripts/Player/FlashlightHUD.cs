@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Icono de la linterna. Solo aparece mientras el jugador mantiene Tab y la
     // linterna es el objeto que tiene en la mano. El fade se hace con el
     // CanvasGroup para que la entrada y la salida sean suaves.

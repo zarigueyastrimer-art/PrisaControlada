@@ -3,8 +3,11 @@ using UnityEngine.InputSystem;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class WeaponManager : MonoBehaviour
     {
+        // Composicion: el manager no hereda de WeaponController, tiene una
+        // coleccion de ellos y decide cual esta activa.
         [SerializeField] private WeaponController[] weapons;
         [SerializeField] private InputActionAsset inputActions;
         [SerializeField] private int startWeaponIndex = 0;

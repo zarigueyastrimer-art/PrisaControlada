@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     // Temporizador del HUD: muestra MM:SS:MS y cuenta hacia adelante desde
     // 00:00:00. El ultimo campo conserva los dos primeros digitos del
     // contador de milisegundos (por ejemplo, 1234 ms se muestran como 12).

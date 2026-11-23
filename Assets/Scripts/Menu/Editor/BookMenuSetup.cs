@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -5,6 +6,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Menu
 {
+    //TP2 - Francisco Larrondo
     /// <summary>
     /// Arma el menú de libro sobre la escena que está abierta (no la guarda):
     /// fondo FondoLibro + los 4 marcadores como pestañas clicables, cada uno con su página.
@@ -84,7 +86,7 @@ namespace PrisaControlada.Menu
                 id = "historia",
                 fileName = "marcadorHistoria.png",
                 markerName = "MarcadorHistoria",
-                label = null,
+                label = "historia",
                 pageName = "PaginaHistoria",
                 pageTitle = null,
                 pixelArea = new Rect(1050f, 30f, 160f, 100f),
@@ -252,66 +254,81 @@ namespace PrisaControlada.Menu
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // Texto sobre la pestaña
-            AddMarkerLabel(rt, marker, def, font);
+            AddMarkerLabel(rt, marker, def);
 
             return marker;
         }
 
-        private static void AddMarkerLabel(RectTransform markerRt, BookMarker marker, MarkerDef def, Font font)
+        private static void AddMarkerLabel(RectTransform markerRt, BookMarker marker, MarkerDef def)
         {
-            var existing = markerRt.Find("Label");
+            var existingTmp = markerRt.GetComponentInChildren<TMP_Text>(true);
+            var existingLegacy = markerRt.GetComponentInChildren<Text>(true);
+
             if (string.IsNullOrEmpty(def.label))
             {
-                // Sin texto: eliminar Label viejo si existe
-                if (existing != null)
-                {
-                    Undo.DestroyObjectImmediate(existing.gameObject);
-                    var soDel = new SerializedObject(marker);
-                    soDel.FindProperty("labelText").objectReferenceValue = null;
-                    soDel.ApplyModifiedPropertiesWithoutUndo();
-                }
+                // Sin texto: eliminar la etiqueta vieja si existe.
+                if (existingTmp != null)
+                    Undo.DestroyObjectImmediate(existingTmp.gameObject);
+                else if (existingLegacy != null)
+                    Undo.DestroyObjectImmediate(existingLegacy.gameObject);
+
+                var soDel = new SerializedObject(marker);
+                soDel.FindProperty("labelText").objectReferenceValue = null;
+                soDel.ApplyModifiedPropertiesWithoutUndo();
                 return;
             }
 
-            if (existing != null)
+            TMP_Text textComp;
+            if (existingTmp != null)
             {
-                var text = existing.GetComponent<Text>();
-                if (text != null)
-                {
-                    text.text = def.label;
-                    var so = new SerializedObject(marker);
-                    so.FindProperty("labelText").objectReferenceValue = text;
-                    so.ApplyModifiedPropertiesWithoutUndo();
-                }
-                return;
+                textComp = existingTmp;
+
+                // No dejar una etiqueta legacy duplicada debajo del TMP.
+                if (existingLegacy != null)
+                    Undo.DestroyObjectImmediate(existingLegacy);
+            }
+            else if (existingLegacy != null)
+            {
+                // Los marcadores actuales usan TMP. Convertimos una etiqueta legacy
+                // antigua en el mismo GameObject para no duplicar el texto.
+                var legacyGo = existingLegacy.gameObject;
+                Undo.DestroyObjectImmediate(existingLegacy);
+                textComp = Undo.AddComponent<TextMeshProUGUI>(legacyGo);
+            }
+            else
+            {
+                var labelGo = new GameObject("Label", typeof(RectTransform));
+                labelGo.transform.SetParent(markerRt, false);
+                Undo.RegisterCreatedObjectUndo(labelGo, "Menu Libro");
+                textComp = Undo.AddComponent<TextMeshProUGUI>(labelGo);
             }
 
-            var labelGo = new GameObject("Label", typeof(RectTransform));
-            labelGo.transform.SetParent(markerRt, false);
-            Undo.RegisterCreatedObjectUndo(labelGo, "Menu Libro");
+            var labelRt = textComp.rectTransform;
 
-            var labelRt = labelGo.GetComponent<RectTransform>();
-            labelRt.anchorMin = new Vector2(0.5f, 0.5f);
-            labelRt.anchorMax = new Vector2(0.5f, 0.5f);
-            labelRt.pivot = new Vector2(0.5f, 0.5f);
-
-            // Centro del pixelArea en coordenadas del sprite (origen arriba-izquierda).
+            // El marcador es un sprite de 1920x1080 estirado a toda la pantalla.
+            // Para que el texto siga a la pestaña al cambiar el aspecto, el ancla
+            // debe estar en la posición NORMALIZADA de la pestaña dentro del sprite.
+            // Usar el centro (0.5, 0.5) hace que el texto se separe al redimensionar.
             float cx = def.pixelArea.x + def.pixelArea.width * 0.5f;
             float cySprite = def.pixelArea.y + def.pixelArea.height * 0.5f;
-            // Convertir a coordenadas UI (origen abajo-izquierda).
-            float cy = SpriteSize.y - cySprite;
+            float cy = SpriteSize.y - cySprite; // coordenadas UI: origen abajo-izquierda
+            var normalizedAnchor = new Vector2(cx / SpriteSize.x, cy / SpriteSize.y);
 
-            labelRt.anchoredPosition = new Vector2(cx, cy);
+            labelRt.anchorMin = normalizedAnchor;
+            labelRt.anchorMax = normalizedAnchor;
+            labelRt.pivot = new Vector2(0.5f, 0.5f);
+            labelRt.anchoredPosition = Vector2.zero;
             labelRt.sizeDelta = new Vector2(def.pixelArea.width, 40f);
 
-            var textComp = Undo.AddComponent<Text>(labelGo);
-            textComp.font = font;
+            var tmpFont = LoadTmpFont();
+            if (tmpFont != null) textComp.font = tmpFont;
             textComp.text = def.label;
-            textComp.fontSize = 26;
+            textComp.fontSize = 26f;
             textComp.color = new Color(0.24f, 0.15f, 0.10f, 1f);
-            textComp.alignment = TextAnchor.MiddleCenter;
-            textComp.horizontalOverflow = HorizontalWrapMode.Overflow;
-            textComp.verticalOverflow = VerticalWrapMode.Overflow;
+            textComp.alignment = TextAlignmentOptions.Center;
+            textComp.textWrappingMode = TextWrappingModes.NoWrap;
+            textComp.overflowMode = TextOverflowModes.Overflow;
+            textComp.enableAutoSizing = false;
             textComp.raycastTarget = false; // no bloquea el click del marcador
 
             var soMarker = new SerializedObject(marker);
@@ -795,6 +812,16 @@ namespace PrisaControlada.Menu
                 // Crear una fuente temporal si todo falla (no debería pasar)
                 font = Resources.GetBuiltinResource<Font>("Arial.ttf");
             }
+            return font;
+        }
+
+        private static TMP_FontAsset LoadTmpFont()
+        {
+            var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(Folder + "Always Classy SDF.asset");
+            if (font == null)
+                font = TMP_Settings.defaultFontAsset;
+            if (font == null)
+                Debug.LogError("[Menu Libro] No se encontró la fuente SDF para las etiquetas de los marcadores.");
             return font;
         }
     }

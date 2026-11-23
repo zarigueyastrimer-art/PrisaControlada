@@ -10,6 +10,7 @@ using PrisaControlada.Items;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     public static class FlashlightWeaponSetup
     {
         const string ARM_FBX = "Assets/MyAssets/flash/flashAnimation.fbx";

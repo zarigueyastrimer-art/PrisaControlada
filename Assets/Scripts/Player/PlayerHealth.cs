@@ -3,15 +3,21 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Ian Rosenberg
     public class PlayerHealth : MonoBehaviour
     {
         [Header("Health")]
         [SerializeField] private int maxHealth = 100;
 
+        // Encapsulamiento: maxHealth es privado y se setea desde el Inspector;
+        // desde afuera se lee, pero nadie le puede meter un valor raro.
         public int CurrentHealth { get; private set; }
         public int MaxHealth => maxHealth;
         public bool IsDead => CurrentHealth <= 0;
 
+        // Eventos sobre delegates: Action<int> es un delegate (firma void(int))
+        // y el evento es la lista de los metodos suscritos. El HUD se suscribe
+        // en su OnEnable y aca solo se invoca: esta clase no conoce al HUD.
         public event Action<int> OnDamaged;
         public event Action OnDied;
         public event Action<int> OnHealed;

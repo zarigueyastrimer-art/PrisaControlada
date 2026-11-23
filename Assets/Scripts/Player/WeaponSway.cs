@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class WeaponSway : MonoBehaviour
     {
         [Header("Rotation Lag")]

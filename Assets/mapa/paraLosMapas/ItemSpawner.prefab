@@ -85,6 +85,10 @@ MonoBehaviour:
     weight: 1
     minCount: 1
     maxCount: 1
+  - prefab: {fileID: 7389323696332934375, guid: 4bb19642a932bb247b788e125941f12d, type: 3}
+    weight: 1
+    minCount: 1
+    maxCount: 1
   nothingWeight: 10
   spawnRadius: 0
   randomRotation: 1

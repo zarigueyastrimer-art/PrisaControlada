@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace PrisaControlada.Editor
 {
+    //TP2 - Matías Morilla
     // Tool: reemplaza el "circulito" interactuable por la mira de 4 esquinas
     // ("mira abierta"), partida de Assets/VHSEffectURP/hud/hudUpdate/ en 4 PNG
     // de 30x30.

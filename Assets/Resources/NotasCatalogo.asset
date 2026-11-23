@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1fb8420e6305454495ee33e14b469e4, type: 3}
+  m_Name: NotasCatalogo
+  m_EditorClassIdentifier: 
+  notas:
+  - id: nota_prototipo
+    titulo: Nota prototipo
+    texto: 'esta es solo una nota de testeo porque se rompio mi pc y tube que arreglar
+
+      las
+      cosas que faltaban en 2 dias y no me da el tiempo perdon profe jejejejej
+
+
+      jjejejejejjejejejjejejejejjejejejjejejejjejejjejeeeaneiuand
+
+      isafneifnasifonatwbnuasdif
+      u8vn fsfnae9fvo,auifjnsdgiundsignsmFGISFIAOMPFVW9GNSD
+
+      MSOFQUWNFIOSNDFPAFAIN'
+  - id: nota_guardia
+    titulo: Turno del guardia
+    texto: 'Turno 14. El zumbido volvio a sonar a las 3 otra vez.
+
+      Nadie revisa
+      el ala este desde el incidente.
+
+      Si estas leyendo esto, no abras la puerta
+      verde.'
+  - id: nota_recado
+    titulo: Recado sin firmar
+    texto: 'Me lleve lo que quedaba del cajon de arriba.
+
+      Si llegas tarde,
+      buscalo bajo la mesa.
+
+      Y no esperes a que vuelva a sonar el zumbido.'

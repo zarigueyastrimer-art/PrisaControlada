@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class WeaponAnimFix : MonoBehaviour
     {
         private void Awake()

@@ -4,6 +4,7 @@ using PrisaControlada.Enemies;
 
 namespace PrisaControlada.Player
 {
+    //TP2 - Francisco Larrondo
     public class ShotgunToggle : MonoBehaviour
     {
         [Header("References")]
